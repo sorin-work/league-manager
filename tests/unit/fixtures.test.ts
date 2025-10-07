@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FixtureError, roundRobin } from '@/lib/domain/fixtures';
+import { FixtureError, generateFixtures, roundRobin } from '@/lib/domain/fixtures';
 
 const teams = (n: number) => Array.from({ length: n }, (_, i) => `t${i + 1}`);
 
@@ -63,5 +63,34 @@ describe('roundRobin', () => {
       const playing = round.matches.flatMap((m) => [m.home, m.away]);
       expect(playing).not.toContain(round.bye);
     }
+  });
+});
+
+describe('generateFixtures', () => {
+  it('returns the single round-robin by default', () => {
+    expect(generateFixtures(teams(4))).toEqual(roundRobin(teams(4)));
+  });
+
+  it('doubles the number of rounds for a double round-robin', () => {
+    const rounds = generateFixtures(teams(6), 'DOUBLE');
+    expect(rounds).toHaveLength(10);
+    expect(rounds.map((r) => r.round)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  });
+
+  it('plays every ordered pairing once in a double round-robin', () => {
+    const seen = new Set<string>();
+    for (const round of generateFixtures(teams(5), 'DOUBLE')) {
+      for (const m of round.matches) {
+        const key = `${m.home}>${m.away}`;
+        expect(seen.has(key)).toBe(false);
+        seen.add(key);
+      }
+    }
+    expect(seen.size).toBe(5 * 4);
+  });
+
+  it('keeps the same byes in the second leg', () => {
+    const rounds = generateFixtures(teams(5), 'DOUBLE');
+    expect(rounds.slice(5).map((r) => r.bye)).toEqual(rounds.slice(0, 5).map((r) => r.bye));
   });
 });

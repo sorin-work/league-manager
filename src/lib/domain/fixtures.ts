@@ -60,3 +60,21 @@ export function roundRobin(teamIds: TeamId[]): Round[] {
 
   return rounds;
 }
+
+export type FixtureFormat = 'SINGLE' | 'DOUBLE';
+
+/**
+ * Builds the full fixture list. A double round-robin plays the first leg again
+ * with home and away reversed, so every pair meets once at each ground.
+ */
+export function generateFixtures(teamIds: TeamId[], format: FixtureFormat = 'SINGLE'): Round[] {
+  const firstLeg = roundRobin(teamIds);
+  if (format === 'SINGLE') return firstLeg;
+
+  const secondLeg = firstLeg.map((round) => ({
+    round: round.round + firstLeg.length,
+    matches: round.matches.map((m) => ({ home: m.away, away: m.home })),
+    bye: round.bye,
+  }));
+  return [...firstLeg, ...secondLeg];
+}
