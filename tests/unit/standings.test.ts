@@ -41,13 +41,13 @@ describe('computeStandings', () => {
   });
 
   it('uses custom points rules', () => {
-    const rules = { pointsForWin: 2, pointsForDraw: 1, pointsForLoss: 0 };
+    const rules = { pointsForWin: 2, pointsForDraw: 1, pointsForLoss: 0, tiebreakers: [] };
     const table = computeStandings(teams, [result('a', 'b', 1, 0)], rules);
     expect(table[0]).toMatchObject({ teamId: 'a', points: 2 });
   });
 
   it('can award points for a loss', () => {
-    const rules = { pointsForWin: 3, pointsForDraw: 2, pointsForLoss: 1 };
+    const rules = { pointsForWin: 3, pointsForDraw: 2, pointsForLoss: 1, tiebreakers: [] };
     const table = computeStandings(teams, [result('a', 'b', 1, 0)], rules);
     expect(table.find((r) => r.teamId === 'b')?.points).toBe(1);
   });
