@@ -7,3 +7,41 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum FixtureFormat {
+  SINGLE
+  DOUBLE
+}
+
+model Season {
+  id              String     @id @default(cuid())
+  name            String
+  slug            String     @unique
+  startDate       DateTime   @db.Date
+  endDate         DateTime   @db.Date
+  /// IANA time zone used for kick-off times, e.g. Europe/London
+  timezone        String     @default("Europe/London")
+  pointsForWin    Int        @default(3)
+  pointsForDraw   Int        @default(1)
+  pointsForLoss   Int        @default(0)
+  tiebreakers     String[]   @default(["GOAL_DIFFERENCE", "GOALS_FOR", "HEAD_TO_HEAD"])
+  yellowCardLimit Int        @default(5)
+  yellowCardBan   Int        @default(1)
+  redCardBan      Int        @default(1)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  divisions       Division[]
+}
+
+model Division {
+  id        String        @id @default(cuid())
+  seasonId  String
+  season    Season        @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  name      String
+  slug      String
+  format    FixtureFormat @default(SINGLE)
+  sortOrder Int           @default(0)
+  createdAt DateTime      @default(now())
+
+  @@unique([seasonId, slug])
+}
