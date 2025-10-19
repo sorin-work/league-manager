@@ -42,6 +42,32 @@ model Division {
   format    FixtureFormat @default(SINGLE)
   sortOrder Int           @default(0)
   createdAt DateTime      @default(now())
+  teams     Team[]
 
   @@unique([seasonId, slug])
+}
+
+model Team {
+  id         String   @id @default(cuid())
+  divisionId String
+  division   Division @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  name       String
+  shortName  String?
+  slug       String
+  createdAt  DateTime @default(now())
+  players    Player[]
+
+  @@unique([divisionId, slug])
+}
+
+model Player {
+  id          String   @id @default(cuid())
+  teamId      String
+  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  name        String
+  shirtNumber Int?
+  createdAt   DateTime @default(now())
+
+  @@unique([teamId, shirtNumber])
+  @@index([teamId])
 }
