@@ -1,5 +1,22 @@
 import { NextRequest } from 'next/server';
+import { createSession, hashPassword, SESSION_COOKIE } from '@/lib/server/auth';
 import { prisma } from '@/lib/server/db';
+
+export const ADMIN_EMAIL = 'admin@example.com';
+export const ADMIN_PASSWORD = 'admin-password';
+
+export async function createAdmin(email = ADMIN_EMAIL, password = ADMIN_PASSWORD) {
+  return prisma.adminUser.create({
+    data: { email, name: 'League Admin', passwordHash: await hashPassword(password) },
+  });
+}
+
+/** Creates an admin with a session and returns the cookie header to send. */
+export async function adminCookie(): Promise<string> {
+  const admin = await createAdmin();
+  const { token } = await createSession(admin.id);
+  return `${SESSION_COOKIE}=${token}`;
+}
 
 /** Empties every table, keeping the migration history. */
 export async function resetDb() {
