@@ -2,9 +2,10 @@ import { createHash, randomBytes } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import type { NextRequest } from 'next/server';
 import { prisma } from './db';
+import { SESSION_COOKIE } from '../session-cookie';
 import { unauthorized } from './http';
 
-export const SESSION_COOKIE = 'lm_session';
+export { SESSION_COOKIE };
 export const SESSION_TTL_DAYS = 14;
 
 const BCRYPT_ROUNDS = 10;
