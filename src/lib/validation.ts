@@ -67,3 +67,22 @@ export const divisionUpdateSchema = divisionFields.partial();
 
 export type DivisionInput = z.infer<typeof divisionSchema>;
 export type DivisionUpdate = z.infer<typeof divisionUpdateSchema>;
+
+const optionalText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max, `Keep it under ${max} characters`)
+    .transform((v) => (v === '' ? null : v))
+    .nullable()
+    .optional();
+
+export const teamSchema = z.object({
+  name,
+  shortName: optionalText(5).transform((v) => (v ? v.toUpperCase() : v)),
+  homeVenueId: z.string().min(1).nullable().optional(),
+});
+export const teamUpdateSchema = teamSchema.partial();
+
+export type TeamInput = z.infer<typeof teamSchema>;
+export type TeamUpdate = z.infer<typeof teamUpdateSchema>;
