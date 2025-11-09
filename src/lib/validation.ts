@@ -86,3 +86,12 @@ export const teamUpdateSchema = teamSchema.partial();
 
 export type TeamInput = z.infer<typeof teamSchema>;
 export type TeamUpdate = z.infer<typeof teamUpdateSchema>;
+
+export const playerSchema = z.object({
+  name,
+  shirtNumber: z.int('Must be a whole number').min(1).max(99).nullable().optional(),
+});
+export const playerUpdateSchema = playerSchema.partial();
+
+export type PlayerInput = z.infer<typeof playerSchema>;
+export type PlayerUpdate = z.infer<typeof playerUpdateSchema>;
