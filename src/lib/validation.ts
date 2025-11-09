@@ -95,3 +95,12 @@ export const playerUpdateSchema = playerSchema.partial();
 
 export type PlayerInput = z.infer<typeof playerSchema>;
 export type PlayerUpdate = z.infer<typeof playerUpdateSchema>;
+
+export const venueSchema = z.object({
+  name,
+  address: optionalText(200),
+});
+export const venueUpdateSchema = venueSchema.partial();
+
+export type VenueInput = z.infer<typeof venueSchema>;
+export type VenueUpdate = z.infer<typeof venueUpdateSchema>;
