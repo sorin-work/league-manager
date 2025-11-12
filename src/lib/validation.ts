@@ -104,3 +104,16 @@ export const venueUpdateSchema = venueSchema.partial();
 
 export type VenueInput = z.infer<typeof venueSchema>;
 export type VenueUpdate = z.infer<typeof venueUpdateSchema>;
+
+const clockTime = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use the format HH:MM');
+
+export const generateFixturesSchema = z.object({
+  startDate: isoDate,
+  daysBetweenRounds: z.int().min(1).max(28).default(7),
+  kickoffTimes: z.array(clockTime).min(1, 'Give at least one kick-off time').default(['10:00']),
+  venueIds: z.array(z.string().min(1)).default([]),
+  skipDates: z.array(isoDate).default([]),
+  format: z.enum(['SINGLE', 'DOUBLE']).optional(),
+});
+
+export type GenerateFixturesInput = z.infer<typeof generateFixturesSchema>;
