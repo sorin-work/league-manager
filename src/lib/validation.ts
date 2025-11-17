@@ -117,3 +117,16 @@ export const generateFixturesSchema = z.object({
 });
 
 export type GenerateFixturesInput = z.infer<typeof generateFixturesSchema>;
+
+export const matchUpdateSchema = z.object({
+  /** Wall-clock time in the season's time zone, as sent by a datetime-local input. */
+  kickoffAt: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, 'Use the format YYYY-MM-DDTHH:MM')
+    .nullable()
+    .optional(),
+  venueId: z.string().min(1).nullable().optional(),
+  status: z.enum(['SCHEDULED', 'POSTPONED', 'CANCELLED']).optional(),
+});
+
+export type MatchUpdate = z.infer<typeof matchUpdateSchema>;

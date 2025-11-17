@@ -1,5 +1,7 @@
-import { handle, json } from '@/lib/server/http';
-import { getMatch } from '@/lib/server/services/matches';
+import { requireAdmin } from '@/lib/server/auth';
+import { handle, json, readJson } from '@/lib/server/http';
+import { getMatch, updateMatchSchedule } from '@/lib/server/services/matches';
+import { matchUpdateSchema } from '@/lib/validation';
 
 type Params = { id: string };
 
@@ -14,4 +16,10 @@ export const GET = handle<Params>(async (_req, { id }) => {
       timezone: division.season.timezone,
     },
   });
+});
+
+export const PATCH = handle<Params>(async (req, { id }) => {
+  await requireAdmin(req);
+  const input = matchUpdateSchema.parse(await readJson(req));
+  return json({ match: await updateMatchSchedule(id, input) });
 });
