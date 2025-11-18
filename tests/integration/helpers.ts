@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import { NextRequest } from 'next/server';
 import { createSession, hashPassword, SESSION_COOKIE } from '@/lib/server/auth';
 import { prisma } from '@/lib/server/db';
@@ -16,6 +17,59 @@ export async function adminCookie(): Promise<string> {
   const admin = await createAdmin();
   const { token } = await createSession(admin.id);
   return `${SESSION_COOKIE}=${token}`;
+}
+
+const TEAM_NAMES = [
+  'Ashby Athletic',
+  'Brookside Borough',
+  'Castle City',
+  'Dale Dynamo',
+  'Eastfield',
+  'Fernhill Rangers',
+  'Greenway United',
+  'Harbour Town',
+];
+
+interface LeagueOptions {
+  teams?: number;
+  playersPerTeam?: number;
+  season?: Partial<Prisma.SeasonCreateInput>;
+}
+
+/** Season, division and teams (with players) straight in the database. */
+export async function createLeague(opts: LeagueOptions = {}) {
+  const season = await prisma.season.create({
+    data: {
+      name: 'Test Season',
+      slug: `test-season-${Math.random().toString(36).slice(2, 8)}`,
+      startDate: new Date('2025-09-01T00:00:00Z'),
+      endDate: new Date('2026-05-31T00:00:00Z'),
+      ...opts.season,
+    },
+  });
+  const division = await prisma.division.create({
+    data: { seasonId: season.id, name: 'Premier', slug: 'premier' },
+  });
+  const teams = [];
+  for (let i = 0; i < (opts.teams ?? 4); i++) {
+    const name = TEAM_NAMES[i];
+    const players = Array.from({ length: opts.playersPerTeam ?? 0 }, (_, n) => ({
+      name: `${name.split(' ')[0]} Player ${n + 1}`,
+      shirtNumber: n + 1,
+    }));
+    teams.push(
+      await prisma.team.create({
+        data: {
+          divisionId: division.id,
+          name,
+          slug: name.toLowerCase().replace(/\s+/g, '-'),
+          players: { create: players },
+        },
+        include: { players: { orderBy: { shirtNumber: 'asc' } } },
+      }),
+    );
+  }
+  return { season, division, teams };
 }
 
 /** Empties every table, keeping the migration history. */
