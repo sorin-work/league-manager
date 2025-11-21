@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { EVENT_TYPES } from './domain/scorers';
 import { TIEBREAKERS } from './domain/standings';
 import { isValidTimeZone } from './domain/time';
 
@@ -130,3 +131,20 @@ export const matchUpdateSchema = z.object({
 });
 
 export type MatchUpdate = z.infer<typeof matchUpdateSchema>;
+
+const score = z.int('Must be a whole number').min(0).max(99);
+
+export const matchEventSchema = z.object({
+  playerId: z.string().min(1),
+  type: z.enum(EVENT_TYPES),
+  minute: z.int().min(1).max(130).nullable().optional(),
+});
+
+export const resultSchema = z.object({
+  homeScore: score,
+  awayScore: score,
+  events: z.array(matchEventSchema).max(80).default([]),
+});
+
+export type MatchEventInput = z.infer<typeof matchEventSchema>;
+export type ResultInput = z.infer<typeof resultSchema>;
