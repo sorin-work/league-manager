@@ -126,6 +126,6 @@ export function suspendedFor(suspensions: Suspension[], matchId: string): Set<st
 }
 
 /** Bans that still have matches left to serve. */
-export function activeSuspensions(suspensions: Suspension[]): Suspension[] {
+export function activeSuspensions<T extends Suspension>(suspensions: T[]): T[] {
   return suspensions.filter((s) => s.remaining > 0);
 }
