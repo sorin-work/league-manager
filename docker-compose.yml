@@ -1,0 +1,16 @@
+name: league-manager
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: league
+      POSTGRES_PASSWORD: league
+      POSTGRES_DB: league
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - '${DB_PORT:-5432}:5432'
+
+volumes:
+  db-data:
