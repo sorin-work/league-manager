@@ -47,6 +47,20 @@ export async function listSeasons(): Promise<SeasonDto[]> {
   return seasons.map(toSeasonDto);
 }
 
+/** Seasons with their divisions, for the public home page. */
+export async function listSeasonsWithDivisions() {
+  const seasons = await prisma.season.findMany({
+    orderBy: { startDate: 'desc' },
+    include: {
+      divisions: {
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+        select: { id: true, name: true, slug: true, _count: { select: { teams: true } } },
+      },
+    },
+  });
+  return seasons.map((s) => ({ ...toSeasonDto(s), divisions: s.divisions }));
+}
+
 export async function getSeason(id: string): Promise<SeasonDto> {
   const season = await prisma.season.findUnique({ where: { id } });
   if (!season) throw notFound('Season not found');
