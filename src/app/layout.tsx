@@ -1,15 +1,23 @@
 import type { Metadata } from 'next';
+import { SiteFooter, SiteHeader } from '@/components/SiteChrome';
 import './globals.css';
 
+// every page reads from the database
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
-  title: 'League Manager',
+  title: { default: 'League Manager', template: '%s · League Manager' },
   description: 'Fixtures, results and standings for amateur sports leagues.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <SiteHeader />
+        <main>{children}</main>
+        <SiteFooter />
+      </body>
     </html>
   );
 }
