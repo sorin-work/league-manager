@@ -1,0 +1,49 @@
+import Link from 'next/link';
+import { formatKickoff } from '@/lib/domain/time';
+import type { MatchWithTeams } from '@/lib/server/services/matches';
+
+interface Props {
+  matches: MatchWithTeams[];
+  timeZone: string;
+  /** Show the latest round first (results) instead of the earliest (fixtures). */
+  newestFirst?: boolean;
+  emptyText: string;
+}
+
+const STATUS_LABEL: Record<string, string> = {
+  POSTPONED: 'Postponed',
+  CANCELLED: 'Cancelled',
+};
+
+export function MatchList({ matches, timeZone, newestFirst = false, emptyText }: Props) {
+  if (matches.length === 0) return <div className="empty">{emptyText}</div>;
+
+  const rounds = new Map<number, MatchWithTeams[]>();
+  for (const m of matches) rounds.set(m.round, [...(rounds.get(m.round) ?? []), m]);
+  const order = [...rounds.keys()].sort((a, b) => (newestFirst ? b - a : a - b));
+
+  return (
+    <div className="match-list">
+      {order.map((round) => (
+        <section key={round}>
+          <h3>Round {round}</h3>
+          <ul>
+            {rounds.get(round)!.map((m) => (
+              <li key={m.id} className="match-row">
+                <span className="when muted small">
+                  {STATUS_LABEL[m.status] ?? formatKickoff(m.kickoffAt, timeZone)}
+                </span>
+                <span className="home">{m.homeTeam.name}</span>
+                <Link href={`/matches/${m.id}`} className="score">
+                  {m.status === 'PLAYED' ? `${m.homeScore} – ${m.awayScore}` : 'v'}
+                </Link>
+                <span className="away">{m.awayTeam.name}</span>
+                <span className="venue muted small">{m.venue?.name ?? ''}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  );
+}

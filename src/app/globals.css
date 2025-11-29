@@ -214,3 +214,72 @@ tbody tr:hover {
 .standings td.pts {
   font-weight: 700;
 }
+
+/* tabs */
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+
+.tab {
+  padding: 0.5rem 0.9rem;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+
+.tab:hover {
+  text-decoration: none;
+  color: var(--text);
+}
+
+.tab.active {
+  color: var(--accent-strong);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+/* match lists */
+
+.match-list h3 {
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin: 1.25rem 0 0.5rem;
+}
+
+.match-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.match-row {
+  display: grid;
+  grid-template-columns: 9rem 1fr 4.5rem 1fr 10rem;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.match-row .home {
+  text-align: right;
+}
+
+.match-row .score {
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  background: var(--bg);
+  border-radius: 4px;
+  padding: 0.1rem 0;
+}
+
+.match-row .venue {
+  text-align: right;
+}
