@@ -205,3 +205,12 @@ th.num {
 tbody tr:hover {
   background: #f9fbfc;
 }
+
+.standings td.team {
+  width: 100%;
+  white-space: normal;
+}
+
+.standings td.pts {
+  font-weight: 700;
+}

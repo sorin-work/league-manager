@@ -19,6 +19,13 @@ export async function getDivision(id: string) {
   return division;
 }
 
+export async function getDivisionBySlugs(seasonSlug: string, divisionSlug: string) {
+  return prisma.division.findFirst({
+    where: { slug: divisionSlug, season: { slug: seasonSlug } },
+    include: { season: true },
+  });
+}
+
 async function takenSlugs(seasonId: string, excludeId?: string) {
   const rows = await prisma.division.findMany({
     where: { seasonId, id: excludeId ? { not: excludeId } : undefined },
