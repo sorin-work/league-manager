@@ -2,12 +2,14 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { MatchList } from '@/components/MatchList';
+import { ScorersTable } from '@/components/ScorersTable';
 import { StandingsTable } from '@/components/StandingsTable';
 import { Tabs } from '@/components/Tabs';
 import { TIEBREAKER_LABELS, type Tiebreaker } from '@/lib/domain/standings';
 import { prisma } from '@/lib/server/db';
 import { getDivisionBySlugs } from '@/lib/server/services/divisions';
 import { listDivisionMatches } from '@/lib/server/services/matches';
+import { getDivisionScorers } from '@/lib/server/services/scorers';
 import { getDivisionStandings } from '@/lib/server/services/standings';
 
 type Props = {
@@ -19,6 +21,7 @@ const TABS = [
   { id: 'table', label: 'Table' },
   { id: 'fixtures', label: 'Fixtures' },
   { id: 'results', label: 'Results' },
+  { id: 'scorers', label: 'Top scorers' },
 ];
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -35,10 +38,13 @@ export default async function DivisionPage({ params, searchParams }: Props) {
   if (!division) notFound();
   const { season } = division;
 
-  const [{ standings, rules }, teams, matches] = await Promise.all([
+  const [{ standings, rules }, teams, matches, scorers] = await Promise.all([
     getDivisionStandings(division.id),
     prisma.team.findMany({ where: { divisionId: division.id }, select: { id: true, slug: true } }),
-    tab === 'table' ? Promise.resolve([]) : listDivisionMatches(division.id),
+    tab === 'fixtures' || tab === 'results'
+      ? listDivisionMatches(division.id)
+      : Promise.resolve([]),
+    tab === 'scorers' ? getDivisionScorers(division.id) : Promise.resolve([]),
   ]);
   const slugOf = new Map(teams.map((t) => [t.id, t.slug]));
   const base = `/seasons/${season.slug}/${division.slug}`;
@@ -69,6 +75,12 @@ export default async function DivisionPage({ params, searchParams }: Props) {
             newestFirst
             emptyText="No results yet."
           />
+        </section>
+      )}
+
+      {tab === 'scorers' && (
+        <section className="card">
+          <ScorersTable rows={scorers} />
         </section>
       )}
 
