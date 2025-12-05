@@ -24,6 +24,14 @@ export async function listDivisionMatches(divisionId: string, filter: { round?: 
   });
 }
 
+export function listTeamMatches(teamId: string) {
+  return prisma.match.findMany({
+    where: { OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }] },
+    include: matchInclude,
+    orderBy: [{ round: 'asc' }, { kickoffAt: 'asc' }],
+  });
+}
+
 export async function getMatch(id: string) {
   const match = await prisma.match.findUnique({
     where: { id },

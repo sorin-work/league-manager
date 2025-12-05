@@ -26,6 +26,17 @@ export async function getTeam(id: string) {
   return team;
 }
 
+export async function getTeamBySlugs(seasonSlug: string, divisionSlug: string, teamSlug: string) {
+  return prisma.team.findFirst({
+    where: { slug: teamSlug, division: { slug: divisionSlug, season: { slug: seasonSlug } } },
+    include: {
+      homeVenue: true,
+      division: { include: { season: true } },
+      players: { orderBy: [{ shirtNumber: 'asc' }, { name: 'asc' }] },
+    },
+  });
+}
+
 async function takenSlugs(divisionId: string, excludeId?: string) {
   const rows = await prisma.team.findMany({
     where: { divisionId, id: excludeId ? { not: excludeId } : undefined },
