@@ -41,6 +41,21 @@ export async function getMatch(id: string) {
   return match;
 }
 
+/** A match with its events and everything a match page needs, or null. */
+export function getMatchDetails(id: string) {
+  return prisma.match.findUnique({
+    where: { id },
+    include: {
+      ...matchInclude,
+      division: { include: { season: true } },
+      events: {
+        include: { player: { select: { id: true, name: true, shirtNumber: true } } },
+        orderBy: [{ minute: 'asc' }, { createdAt: 'asc' }],
+      },
+    },
+  });
+}
+
 /** Moves a match, changes its venue or postpones/cancels it. */
 export async function updateMatchSchedule(id: string, input: MatchUpdate) {
   const match = await getMatch(id);
