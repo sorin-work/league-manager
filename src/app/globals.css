@@ -420,6 +420,30 @@ textarea:focus {
   color: var(--accent-strong);
 }
 
+/* admin */
+
+.admin-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-nav {
+  display: flex;
+  gap: 1rem;
+  font-weight: 600;
+}
+
+.admin-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 /* tabs */
 
 .tabs {
