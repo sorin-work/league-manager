@@ -428,6 +428,22 @@ legend {
   align-items: center;
 }
 
+.inline-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex: 1;
+}
+
+.shirt-input {
+  width: 4.5rem;
+  flex: none;
+}
+
+.grow {
+  flex: 1;
+}
+
 .alert {
   padding: 0.6rem 0.8rem;
   border-radius: 6px;
