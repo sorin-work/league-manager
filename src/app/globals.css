@@ -428,6 +428,17 @@ legend {
   align-items: center;
 }
 
+.checkbox {
+  display: flex !important;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 400 !important;
+}
+
+.checkbox input {
+  width: auto;
+}
+
 .inline-form {
   display: flex;
   gap: 0.5rem;
