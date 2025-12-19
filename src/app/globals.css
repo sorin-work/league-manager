@@ -439,6 +439,39 @@ legend {
   width: auto;
 }
 
+.score-inputs {
+  display: flex;
+  align-items: end;
+  gap: 1rem;
+}
+
+.score-inputs input {
+  width: 5rem;
+  font-size: 1.25rem;
+  text-align: center;
+}
+
+.score-inputs .dash {
+  font-size: 1.5rem;
+  padding-bottom: 0.3rem;
+}
+
+.event-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.event-row select:first-child {
+  width: 9rem;
+  flex: none;
+}
+
+.minute-input {
+  width: 5rem;
+  flex: none;
+}
+
 .inline-form {
   display: flex;
   gap: 0.5rem;
