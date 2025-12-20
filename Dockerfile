@@ -24,6 +24,8 @@ COPY --from=build --chown=node:node /app/.next ./.next
 COPY --from=build --chown=node:node /app/prisma ./prisma
 COPY --from=build --chown=node:node /app/src ./src
 COPY --from=build --chown=node:node /app/scripts ./scripts
+COPY --chown=node:node docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 USER node
 EXPOSE 3000
+ENTRYPOINT ["entrypoint.sh"]
 CMD ["node_modules/.bin/next", "start", "--port", "3000"]
