@@ -1,0 +1,6 @@
+# Publishes the database port for running the app on the host:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db
+services:
+  db:
+    ports:
+      - '${DB_PORT:-5432}:5432'
