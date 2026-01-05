@@ -49,8 +49,9 @@ export function roundRobin(teamIds: TeamId[]): Round[] {
         bye = a ?? b;
         continue;
       }
-      // Alternate home and away down the table so teams don't get long runs.
-      const swap = i % 2 === 1;
+      // Alternate home and away down the table so teams don't get long runs. The
+      // fixed slot never moves, so it has to alternate from round to round.
+      const swap = i === 0 ? r % 2 === 1 : i % 2 === 1;
       matches.push(swap ? { home: b, away: a } : { home: a, away: b });
     }
 

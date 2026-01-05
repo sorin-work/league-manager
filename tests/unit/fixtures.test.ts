@@ -66,6 +66,51 @@ describe('roundRobin', () => {
   });
 });
 
+describe('home and away balance', () => {
+  function balance(n: number) {
+    const home = new Map<string, number>();
+    const runs = new Map<string, { last: string; length: number; longest: number }>();
+    for (const round of roundRobin(teams(n))) {
+      for (const m of round.matches) {
+        home.set(m.home, (home.get(m.home) ?? 0) + 1);
+        for (const [team, venue] of [
+          [m.home, 'H'],
+          [m.away, 'A'],
+        ]) {
+          const run = runs.get(team) ?? { last: '', length: 0, longest: 0 };
+          run.length = run.last === venue ? run.length + 1 : 1;
+          run.last = venue;
+          run.longest = Math.max(run.longest, run.length);
+          runs.set(team, run);
+        }
+      }
+    }
+    const homeCounts = teams(n).map((t) => home.get(t) ?? 0);
+    return {
+      spread: Math.max(...homeCounts) - Math.min(...homeCounts),
+      longestRun: Math.max(...[...runs.values()].map((r) => r.longest)),
+    };
+  }
+
+  it.each([4, 6, 8, 10, 12, 16])('keeps home games within one of each other (%i teams)', (n) => {
+    expect(balance(n).spread).toBeLessThanOrEqual(1);
+  });
+
+  it.each([5, 7, 9, 11])('gives every team the same number of home games (%i teams)', (n) => {
+    expect(balance(n).spread).toBe(0);
+  });
+
+  it.each([4, 6, 7, 8, 10])('never has three home or away games in a row (%i teams)', (n) => {
+    expect(balance(n).longestRun).toBeLessThanOrEqual(2);
+  });
+
+  it('does not keep the first team at home', () => {
+    const rounds = roundRobin(teams(6));
+    const away = rounds.flatMap((r) => r.matches).filter((m) => m.away === 't1');
+    expect(away.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
 describe('generateFixtures', () => {
   it('returns the single round-robin by default', () => {
     expect(generateFixtures(teams(4))).toEqual(roundRobin(teams(4)));
