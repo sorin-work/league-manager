@@ -7,6 +7,8 @@ interface Props {
   timeZone: string;
   /** Show the latest round first (results) instead of the earliest (fixtures). */
   newestFirst?: boolean;
+  /** Team resting in each round, by round number. */
+  byes?: Record<number, string>;
   emptyText: string;
 }
 
@@ -15,7 +17,7 @@ const STATUS_LABEL: Record<string, string> = {
   CANCELLED: 'Cancelled',
 };
 
-export function MatchList({ matches, timeZone, newestFirst = false, emptyText }: Props) {
+export function MatchList({ matches, timeZone, newestFirst = false, byes, emptyText }: Props) {
   if (matches.length === 0) return <div className="empty">{emptyText}</div>;
 
   const rounds = new Map<number, MatchWithTeams[]>();
@@ -42,6 +44,7 @@ export function MatchList({ matches, timeZone, newestFirst = false, emptyText }:
               </li>
             ))}
           </ul>
+          {byes?.[round] && <p className="muted small">Bye: {byes[round]}</p>}
         </section>
       ))}
     </div>

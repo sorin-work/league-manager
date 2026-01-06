@@ -40,7 +40,10 @@ export default async function DivisionPage({ params, searchParams }: Props) {
 
   const [{ standings, rules }, teams, matches, scorers] = await Promise.all([
     getDivisionStandings(division.id),
-    prisma.team.findMany({ where: { divisionId: division.id }, select: { id: true, slug: true } }),
+    prisma.team.findMany({
+      where: { divisionId: division.id },
+      select: { id: true, slug: true, name: true },
+    }),
     tab === 'fixtures' || tab === 'results'
       ? listDivisionMatches(division.id)
       : Promise.resolve([]),
@@ -48,6 +51,21 @@ export default async function DivisionPage({ params, searchParams }: Props) {
   ]);
   const slugOf = new Map(teams.map((t) => [t.id, t.slug]));
   const base = `/seasons/${season.slug}/${division.slug}`;
+
+  // with an odd number of teams somebody sits out every round
+  const byes: Record<number, string> = {};
+  if (teams.length % 2 === 1) {
+    const rounds = new Map<number, Set<string>>();
+    for (const m of matches) {
+      const playing = rounds.get(m.round) ?? new Set<string>();
+      playing.add(m.homeTeamId).add(m.awayTeamId);
+      rounds.set(m.round, playing);
+    }
+    for (const [round, playing] of rounds) {
+      const resting = teams.find((t) => !playing.has(t.id));
+      if (resting) byes[round] = resting.name;
+    }
+  }
 
   return (
     <div className="container">
@@ -62,6 +80,7 @@ export default async function DivisionPage({ params, searchParams }: Props) {
           <MatchList
             matches={matches.filter((m) => m.status !== 'PLAYED')}
             timeZone={season.timezone}
+            byes={byes}
             emptyText="No fixtures left to play."
           />
         </section>
