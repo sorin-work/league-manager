@@ -2,6 +2,8 @@ export const EVENT_TYPES = ['GOAL', 'PENALTY_GOAL', 'OWN_GOAL', 'YELLOW_CARD', '
 export type EventType = (typeof EVENT_TYPES)[number];
 
 export const CARD_TYPES: EventType[] = ['YELLOW_CARD', 'RED_CARD'];
+/** Goals that count for the player who scored them. Own goals do not. */
+export const SCORING_TYPES: EventType[] = ['GOAL', 'PENALTY_GOAL'];
 
 export interface ScoringEvent {
   type: EventType;
@@ -29,7 +31,7 @@ export function topScorers(events: ScoringEvent[], limit = 20): ScorerRow[] {
   const rows = new Map<string, ScorerRow>();
 
   for (const e of events) {
-    if (CARD_TYPES.includes(e.type)) continue;
+    if (!SCORING_TYPES.includes(e.type)) continue;
     let row = rows.get(e.playerId);
     if (!row) {
       row = {

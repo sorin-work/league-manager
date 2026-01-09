@@ -35,6 +35,11 @@ describe('topScorers', () => {
     expect(row).toMatchObject({ goals: 2, penalties: 1 });
   });
 
+  it('does not credit own goals to the player who scored them', () => {
+    const rows = topScorers([ev('p1', 'OWN_GOAL'), ev('p1', 'OWN_GOAL'), ev('p2')]);
+    expect(rows.map((r) => [r.playerId, r.goals])).toEqual([['p2', 1]]);
+  });
+
   it('ignores cards', () => {
     const rows = topScorers([ev('p1', 'YELLOW_CARD'), ev('p2', 'RED_CARD'), ev('p3')]);
     expect(rows.map((r) => r.playerId)).toEqual(['p3']);
