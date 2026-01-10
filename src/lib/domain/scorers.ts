@@ -1,9 +1,6 @@
-export const EVENT_TYPES = ['GOAL', 'PENALTY_GOAL', 'OWN_GOAL', 'YELLOW_CARD', 'RED_CARD'] as const;
-export type EventType = (typeof EVENT_TYPES)[number];
+import { SCORING_TYPES, type EventType } from './events';
 
-export const CARD_TYPES: EventType[] = ['YELLOW_CARD', 'RED_CARD'];
-/** Goals that count for the player who scored them. Own goals do not. */
-export const SCORING_TYPES: EventType[] = ['GOAL', 'PENALTY_GOAL'];
+export type { EventType };
 
 export interface ScoringEvent {
   type: EventType;

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EVENT_TYPES } from './domain/scorers';
+import { EVENT_TYPES } from './domain/events';
 import { TIEBREAKERS } from './domain/standings';
 import { isValidTimeZone } from './domain/time';
 

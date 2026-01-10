@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import type { EventType } from '@/lib/domain/scorers';
+import type { EventType } from '@/lib/domain/events';
 import { formatKickoff } from '@/lib/domain/time';
 import { getMatchDetails } from '@/lib/server/services/matches';
 

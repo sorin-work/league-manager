@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { api, ApiError } from '@/lib/client/api';
-import type { EventType } from '@/lib/domain/scorers';
+import { EVENT_LABELS, EVENT_TYPES, type EventType } from '@/lib/domain/events';
 
 interface Side {
   id: string;
@@ -28,13 +28,7 @@ interface Props {
   events: { playerId: string; type: EventType; minute: number | null }[];
 }
 
-const TYPES: { value: EventType; label: string }[] = [
-  { value: 'GOAL', label: 'Goal' },
-  { value: 'PENALTY_GOAL', label: 'Penalty' },
-  { value: 'OWN_GOAL', label: 'Own goal' },
-  { value: 'YELLOW_CARD', label: 'Yellow card' },
-  { value: 'RED_CARD', label: 'Red card' },
-];
+const TYPES = EVENT_TYPES.map((value) => ({ value, label: EVENT_LABELS[value] }));
 
 let nextKey = 1;
 
