@@ -528,6 +528,44 @@ legend {
   gap: 0.75rem;
 }
 
+/* loading placeholders */
+
+.skeleton {
+  background: linear-gradient(90deg, #e7ebef 25%, #f1f4f7 50%, #e7ebef 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+  border-radius: 4px;
+}
+
+.skeleton.title {
+  height: 2rem;
+  width: 40%;
+  margin-bottom: 1rem;
+}
+
+.skeleton.tabs {
+  height: 2.25rem;
+  margin-bottom: 1rem;
+}
+
+.skeleton.line {
+  height: 1rem;
+  margin: 0.6rem 0;
+}
+
+.skeleton.short {
+  width: 60%;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
 /* tabs */
 
 .tabs {
