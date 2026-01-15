@@ -37,6 +37,13 @@ describe('POST /api/divisions/:id/fixtures', () => {
     expect((await generateFor(division.id, { format: 'SINGLE' })).body.matches).toBe(6);
   });
 
+  it('schedules kick-offs in the season time zone', async () => {
+    const { division } = await createLeague({ season: { timezone: 'Europe/London' } });
+    await generateFor(division.id, { kickoffTimes: ['14:00'] });
+    const first = await prisma.match.findFirstOrThrow({ where: { round: 1 } });
+    expect(first.kickoffAt?.toISOString()).toBe('2025-09-06T13:00:00.000Z');
+  });
+
   it('handles an odd number of teams', async () => {
     const { division } = await createLeague({ teams: 5 });
     expect((await generateFor(division.id)).body).toEqual({ rounds: 5, matches: 10 });

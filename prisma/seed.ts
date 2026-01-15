@@ -220,6 +220,7 @@ async function main() {
       kickoffTimes: index === 0 ? ['10:30', '12:30'] : ['10:00', '12:00'],
       venueIds: venues.map((v) => v.id),
       homeVenues: Object.fromEntries(teams.map((t) => [t.id, t.homeVenueId])),
+      timeZone: season.timezone,
     });
 
     for (const m of scheduled) {

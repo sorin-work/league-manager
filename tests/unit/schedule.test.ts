@@ -77,6 +77,32 @@ describe('scheduleFixtures', () => {
     }
   });
 
+  it('treats kick-off times as local time in the given time zone', () => {
+    const [summer] = scheduleFixtures(generateFixtures(teams(2)), {
+      ...base,
+      timeZone: 'Europe/London',
+    });
+    expect(summer.kickoffAt.toISOString()).toBe('2025-09-06T09:00:00.000Z');
+
+    const [winter] = scheduleFixtures(generateFixtures(teams(2)), {
+      ...base,
+      startDate: '2025-11-08',
+      timeZone: 'Europe/London',
+    });
+    expect(winter.kickoffAt.toISOString()).toBe('2025-11-08T10:00:00.000Z');
+  });
+
+  it('keeps the local kick-off time across a clock change', () => {
+    const matches = scheduleFixtures(generateFixtures(teams(4)), {
+      ...base,
+      startDate: '2025-10-19',
+      timeZone: 'Europe/Berlin',
+    });
+    const hours = matches.map((m) => m.kickoffAt.toISOString().slice(11, 16));
+    // 10:00 CEST is 08:00Z, 10:00 CET is 09:00Z
+    expect(hours).toEqual(['08:00', '08:00', '09:00', '09:00', '09:00', '09:00']);
+  });
+
   it('leaves the venue empty when there are none', () => {
     const [m] = scheduleFixtures(generateFixtures(teams(2)), base);
     expect(m.venueId).toBeNull();

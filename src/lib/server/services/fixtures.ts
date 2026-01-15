@@ -26,6 +26,7 @@ export async function generateDivisionFixtures(divisionId: string, input: Genera
   const matches = scheduleFixtures(rounds, {
     ...input,
     homeVenues: Object.fromEntries(teams.map((t) => [t.id, t.homeVenueId])),
+    timeZone: division.season.timezone,
   });
 
   await prisma.match.createMany({ data: matches.map((m) => ({ ...m, divisionId })) });

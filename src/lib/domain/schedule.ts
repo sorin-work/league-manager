@@ -1,4 +1,5 @@
 import { FixtureError, type Round, type TeamId } from './fixtures';
+import { zonedTimeToUtc } from './time';
 
 export interface ScheduleOptions {
   /** Match day of round 1, YYYY-MM-DD. */
@@ -13,6 +14,8 @@ export interface ScheduleOptions {
   homeVenues?: Record<TeamId, string | null | undefined>;
   /** Match days to skip (holidays, cup weekends). The round moves to the next free date. */
   skipDates?: string[];
+  /** Time zone the kick-off times are meant in. Defaults to UTC. */
+  timeZone?: string;
 }
 
 export interface ScheduledMatch {
@@ -61,7 +64,7 @@ export function scheduleFixtures(rounds: Round[], options: ScheduleOptions): Sch
         round: round.round,
         homeTeamId: match.home,
         awayTeamId: match.away,
-        kickoffAt: new Date(`${date}T${time}:00Z`),
+        kickoffAt: zonedTimeToUtc(`${date}T${time}`, options.timeZone ?? 'UTC'),
         venueId: options.homeVenues?.[match.home] ?? sharedVenue,
       });
     });
