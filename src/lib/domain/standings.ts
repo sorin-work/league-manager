@@ -36,7 +36,12 @@ export interface MatchResult {
   awayTeamId: string;
   homeScore: number;
   awayScore: number;
+  /** When the match was played; used to order the form guide. */
+  playedAt?: Date | null;
 }
+
+export type FormResult = 'W' | 'D' | 'L';
+export const FORM_LENGTH = 5;
 
 export interface StandingRow {
   position: number;
@@ -50,6 +55,8 @@ export interface StandingRow {
   goalsAgainst: number;
   goalDifference: number;
   points: number;
+  /** Last results, oldest first. */
+  form: FormResult[];
 }
 
 function emptyRow(team: StandingsTeam): StandingRow {
@@ -65,6 +72,7 @@ function emptyRow(team: StandingsTeam): StandingRow {
     goalsAgainst: 0,
     goalDifference: 0,
     points: 0,
+    form: [],
   };
 }
 
@@ -76,13 +84,24 @@ function record(row: StandingRow, scored: number, conceded: number, rules: Point
   if (scored > conceded) {
     row.won += 1;
     row.points += rules.pointsForWin;
+    row.form.push('W');
   } else if (scored === conceded) {
     row.drawn += 1;
     row.points += rules.pointsForDraw;
+    row.form.push('D');
   } else {
     row.lost += 1;
     row.points += rules.pointsForLoss;
+    row.form.push('L');
   }
+  if (row.form.length > FORM_LENGTH) row.form.shift();
+}
+
+/** Oldest first; results without a date keep their place at the start. */
+function chronological(results: MatchResult[]): MatchResult[] {
+  return [...results].sort(
+    (a, b) => (a.playedAt?.getTime() ?? -Infinity) - (b.playedAt?.getTime() ?? -Infinity) || 0,
+  );
 }
 
 function tabulate(teams: StandingsTeam[], results: MatchResult[], rules: PointsRules) {
@@ -177,7 +196,9 @@ export function computeStandings(
   rules: StandingsRules = DEFAULT_RULES,
 ): StandingRow[] {
   const ids = new Set(teams.map((t) => t.id));
-  const valid = results.filter((r) => ids.has(r.homeTeamId) && ids.has(r.awayTeamId));
+  const valid = chronological(
+    results.filter((r) => ids.has(r.homeTeamId) && ids.has(r.awayTeamId)),
+  );
   const rows = [...tabulate(teams, valid, rules).values()];
 
   const sorted = splitBy(rows, (r) => [r.points]).flatMap((group) =>

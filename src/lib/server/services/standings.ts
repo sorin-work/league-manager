@@ -16,7 +16,13 @@ export async function getDivisionStandings(divisionId: string) {
     prisma.team.findMany({ where: { divisionId }, select: { id: true, name: true } }),
     prisma.match.findMany({
       where: { divisionId, homeScore: { not: null }, awayScore: { not: null } },
-      select: { homeTeamId: true, awayTeamId: true, homeScore: true, awayScore: true },
+      select: {
+        homeTeamId: true,
+        awayTeamId: true,
+        homeScore: true,
+        awayScore: true,
+        kickoffAt: true,
+      },
     }),
   ]);
 
@@ -25,6 +31,7 @@ export async function getDivisionStandings(divisionId: string) {
     awayTeamId: m.awayTeamId,
     homeScore: m.homeScore!,
     awayScore: m.awayScore!,
+    playedAt: m.kickoffAt,
   }));
 
   return { rules, standings: computeStandings(teams, results, rules) };

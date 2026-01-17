@@ -73,6 +73,24 @@ describe('computeStandings', () => {
     expect(a?.points).toBe(4);
   });
 
+  it('keeps the last five results as the form guide, oldest first', () => {
+    const day = (d: number) => new Date(Date.UTC(2025, 8, d));
+    const results = [
+      { ...result('a', 'b', 0, 1), playedAt: day(20) },
+      { ...result('a', 'c', 2, 0), playedAt: day(6) },
+      { ...result('d', 'a', 1, 1), playedAt: day(13) },
+      { ...result('a', 'b', 3, 0), playedAt: day(27) },
+      { ...result('c', 'a', 0, 0), playedAt: day(30) },
+      { ...result('a', 'd', 0, 2), playedAt: day(1) },
+    ];
+    const a = computeStandings(teams, results).find((r) => r.teamId === 'a');
+    expect(a?.form).toEqual(['W', 'D', 'L', 'W', 'D']);
+  });
+
+  it('has an empty form guide before any match', () => {
+    expect(computeStandings(teams, [])[0].form).toEqual([]);
+  });
+
   it('ignores results for teams that are not in the division', () => {
     const table = computeStandings(teams, [result('a', 'zz', 5, 0)]);
     expect(table.every((r) => r.played === 0)).toBe(true);
