@@ -1,5 +1,7 @@
 import Link from 'next/link';
-import type { StandingRow } from '@/lib/domain/standings';
+import type { FormResult, StandingRow } from '@/lib/domain/standings';
+
+const FORM_TITLES: Record<FormResult, string> = { W: 'Won', D: 'Drawn', L: 'Lost' };
 
 interface Props {
   rows: StandingRow[];
@@ -38,6 +40,7 @@ export function StandingsTable({ rows, teamHref }: Props) {
               GD
             </th>
             <th className="num">Pts</th>
+            <th className="form-col">Form</th>
           </tr>
         </thead>
         <tbody>
@@ -57,6 +60,13 @@ export function StandingsTable({ rows, teamHref }: Props) {
                 {row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference}
               </td>
               <td className="num pts">{row.points}</td>
+              <td className="form-col">
+                {row.form.map((f, i) => (
+                  <span key={i} className={`form-pill form-${f}`} title={FORM_TITLES[f]}>
+                    {f}
+                  </span>
+                ))}
+              </td>
             </tr>
           ))}
         </tbody>
