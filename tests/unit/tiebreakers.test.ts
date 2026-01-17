@@ -75,6 +75,22 @@ describe('tiebreakers', () => {
     );
   });
 
+  it('ranks the winner of the meeting first even with a worse goal difference', () => {
+    // a and b both on 3 points. b has the better goal difference overall,
+    // but a won the game between them.
+    const results = [r('a', 'b', 1, 0), r('b', 'c', 5, 0), r('d', 'a', 3, 0), r('c', 'd', 0, 0)];
+    const table = computeStandings(teams, results, rules('HEAD_TO_HEAD', 'GOAL_DIFFERENCE'));
+    const ids = table.map((row) => row.teamId);
+    expect(ids.indexOf('a')).toBeLessThan(ids.indexOf('b'));
+  });
+
+  it('falls through to the next tiebreaker when head-to-head is level', () => {
+    // a, b and c all on 3 points from a cycle of 1-0 wins
+    const results = [r('a', 'b', 1, 0), r('b', 'c', 1, 0), r('c', 'a', 1, 0)];
+    const table = computeStandings(teams, results, rules('HEAD_TO_HEAD', 'GOALS_FOR'));
+    expect(table.slice(0, 3).map((row) => row.teamId)).toEqual(['a', 'b', 'c']);
+  });
+
   it('assigns consecutive positions after tiebreaks', () => {
     const table = computeStandings(teams, [r('a', 'b', 1, 1), r('c', 'd', 1, 1)], rules());
     expect(table.map((row) => row.position)).toEqual([1, 2, 3, 4]);

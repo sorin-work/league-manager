@@ -128,7 +128,7 @@ function compareScores(a: Score, b: Score): number {
 /** Mini-table between the tied teams only: points first, then goal difference. */
 function headToHead(group: StandingRow[], results: MatchResult[], rules: PointsRules) {
   const ids = new Set(group.map((r) => r.teamId));
-  const games = results.filter((r) => ids.has(r.homeTeamId) || ids.has(r.awayTeamId));
+  const games = results.filter((r) => ids.has(r.homeTeamId) && ids.has(r.awayTeamId));
   const mini = tabulate(
     group.map((r) => ({ id: r.teamId, name: r.name })),
     games,
