@@ -30,6 +30,12 @@ const seasonFields = z.object({
   yellowCardLimit: cards.min(1),
   yellowCardBan: cards,
   redCardBan: cards,
+  notes: z
+    .string()
+    .trim()
+    .max(4000, 'Keep the notes under 4000 characters')
+    .transform((v) => (v === '' ? null : v))
+    .nullable(),
 });
 
 export const seasonSchema = seasonFields
@@ -42,6 +48,7 @@ export const seasonSchema = seasonFields
     yellowCardLimit: cards.min(1).default(5),
     yellowCardBan: cards.default(1),
     redCardBan: cards.default(1),
+    notes: seasonFields.shape.notes.optional(),
   })
   .refine((s) => s.endDate >= s.startDate, {
     path: ['endDate'],

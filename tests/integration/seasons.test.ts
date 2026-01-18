@@ -86,6 +86,22 @@ describe('seasons api', () => {
     });
   });
 
+  it('stores notes and clears them with an empty string', async () => {
+    const { body } = await call(create, {
+      method: 'POST',
+      body: { ...autumn, notes: '  Registration closes 1 September.  ' },
+      cookie,
+    });
+    expect(body.season.notes).toBe('Registration closes 1 September.');
+    const res = await call(update, {
+      method: 'PATCH',
+      params: { id: body.season.id },
+      body: { notes: '' },
+      cookie,
+    });
+    expect(res.body.season.notes).toBeNull();
+  });
+
   it('renaming a season updates its slug', async () => {
     const { body } = await call(create, { method: 'POST', body: autumn, cookie });
     const res = await call(update, {

@@ -19,6 +19,7 @@ export interface SeasonDto {
   yellowCardLimit: number;
   yellowCardBan: number;
   redCardBan: number;
+  notes: string | null;
 }
 
 const toDate = (iso: string) => new Date(`${iso}T00:00:00Z`);
@@ -39,6 +40,7 @@ export function toSeasonDto(s: Season): SeasonDto {
     yellowCardLimit: s.yellowCardLimit,
     yellowCardBan: s.yellowCardBan,
     redCardBan: s.redCardBan,
+    notes: s.notes,
   };
 }
 
