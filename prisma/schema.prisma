@@ -49,6 +49,8 @@ model Season {
   yellowCardLimit Int        @default(5)
   yellowCardBan   Int        @default(1)
   redCardBan      Int        @default(1)
+  /// Free text shown on the public season page: registration info, cup dates, contacts
+  notes           String?
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
   divisions       Division[]
