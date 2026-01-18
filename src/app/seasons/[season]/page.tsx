@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { formatDateRange, plural } from '@/lib/format';
+import { notesToHtml } from '@/lib/notes';
 import { listDivisions } from '@/lib/server/services/divisions';
 import { getSeasonBySlug } from '@/lib/server/services/seasons';
 
@@ -24,6 +25,12 @@ export default async function SeasonPage({ params }: Props) {
       </div>
       <h1>{season.name}</h1>
       <p className="muted">{formatDateRange(season.startDate, season.endDate)}</p>
+      {season.notes && (
+        <section
+          className="card notes"
+          dangerouslySetInnerHTML={{ __html: notesToHtml(season.notes) }}
+        />
+      )}
 
       {divisions.length === 0 ? (
         <div className="card empty">No divisions have been set up for this season yet.</div>

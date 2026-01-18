@@ -591,6 +591,14 @@ legend {
   }
 }
 
+.notes p {
+  margin: 0 0 0.6rem;
+}
+
+.notes p:last-child {
+  margin-bottom: 0;
+}
+
 /* tabs */
 
 .tabs {
