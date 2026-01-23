@@ -40,6 +40,7 @@ export function SeasonSettingsForm({ season }: { season: SeasonDto }) {
           yellowCardLimit: num('yellowCardLimit'),
           yellowCardBan: num('yellowCardBan'),
           redCardBan: num('redCardBan'),
+          notes: form.get('notes'),
         },
       });
       setSaved(true);
@@ -80,6 +81,12 @@ export function SeasonSettingsForm({ season }: { season: SeasonDto }) {
           {fieldError('timezone')}
         </label>
       </div>
+
+      <label>
+        Notes <span className="hint">shown on the season page; blank lines start a paragraph</span>
+        <textarea name="notes" rows={5} defaultValue={season.notes ?? ''} />
+        {fieldError('notes')}
+      </label>
 
       <fieldset>
         <legend>Points</legend>
