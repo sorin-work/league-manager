@@ -15,6 +15,7 @@ describe('seasonSchema', () => {
       yellowCardLimit: 5,
       yellowCardBan: 1,
       redCardBan: 1,
+      status: 'DRAFT',
     });
   });
 

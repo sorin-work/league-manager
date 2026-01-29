@@ -29,30 +29,38 @@ model Session {
   @@index([userId])
 }
 
+enum SeasonStatus {
+  DRAFT
+  ACTIVE
+  FINISHED
+}
+
 enum FixtureFormat {
   SINGLE
   DOUBLE
 }
 
 model Season {
-  id              String     @id @default(cuid())
+  id              String       @id @default(cuid())
   name            String
-  slug            String     @unique
-  startDate       DateTime   @db.Date
-  endDate         DateTime   @db.Date
+  slug            String       @unique
+  /// Draft seasons are only visible in the admin area
+  status          SeasonStatus @default(ACTIVE)
+  startDate       DateTime     @db.Date
+  endDate         DateTime     @db.Date
   /// IANA time zone used for kick-off times, e.g. Europe/London
-  timezone        String     @default("Europe/London")
-  pointsForWin    Int        @default(3)
-  pointsForDraw   Int        @default(1)
-  pointsForLoss   Int        @default(0)
-  tiebreakers     String[]   @default(["GOAL_DIFFERENCE", "GOALS_FOR", "HEAD_TO_HEAD"])
-  yellowCardLimit Int        @default(5)
-  yellowCardBan   Int        @default(1)
-  redCardBan      Int        @default(1)
+  timezone        String       @default("Europe/London")
+  pointsForWin    Int          @default(3)
+  pointsForDraw   Int          @default(1)
+  pointsForLoss   Int          @default(0)
+  tiebreakers     String[]     @default(["GOAL_DIFFERENCE", "GOALS_FOR", "HEAD_TO_HEAD"])
+  yellowCardLimit Int          @default(5)
+  yellowCardBan   Int          @default(1)
+  redCardBan      Int          @default(1)
   /// Free text shown on the public season page: registration info, cup dates, contacts
   notes           String?
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
   divisions       Division[]
 }
 

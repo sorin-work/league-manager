@@ -1,4 +1,4 @@
-import type { Season } from '@prisma/client';
+import type { Season, SeasonStatus } from '@prisma/client';
 import { uniqueSlug } from '@/lib/domain/slug';
 import type { Tiebreaker } from '@/lib/domain/standings';
 import type { SeasonInput, SeasonUpdate } from '@/lib/validation';
@@ -9,6 +9,7 @@ export interface SeasonDto {
   id: string;
   name: string;
   slug: string;
+  status: SeasonStatus;
   startDate: string;
   endDate: string;
   timezone: string;
@@ -30,6 +31,7 @@ export function toSeasonDto(s: Season): SeasonDto {
     id: s.id,
     name: s.name,
     slug: s.slug,
+    status: s.status,
     startDate: fromDate(s.startDate),
     endDate: fromDate(s.endDate),
     timezone: s.timezone,

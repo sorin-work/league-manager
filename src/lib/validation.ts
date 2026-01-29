@@ -30,6 +30,7 @@ const seasonFields = z.object({
   yellowCardLimit: cards.min(1),
   yellowCardBan: cards,
   redCardBan: cards,
+  status: z.enum(['DRAFT', 'ACTIVE', 'FINISHED']),
   notes: z
     .string()
     .trim()
@@ -48,6 +49,7 @@ export const seasonSchema = seasonFields
     yellowCardLimit: cards.min(1).default(5),
     yellowCardBan: cards.default(1),
     redCardBan: cards.default(1),
+    status: seasonFields.shape.status.default('DRAFT'),
     notes: seasonFields.shape.notes.optional(),
   })
   .refine((s) => s.endDate >= s.startDate, {
