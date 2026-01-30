@@ -46,8 +46,19 @@ export function toSeasonDto(s: Season): SeasonDto {
   };
 }
 
-export async function listSeasons(): Promise<SeasonDto[]> {
-  const seasons = await prisma.season.findMany({ orderBy: { startDate: 'desc' } });
+export interface Visibility {
+  /** Admins also see draft seasons. */
+  includeDrafts?: boolean;
+}
+
+const visible = ({ includeDrafts = false }: Visibility = {}) =>
+  includeDrafts ? {} : { status: { not: 'DRAFT' as const } };
+
+export async function listSeasons(options: Visibility = {}): Promise<SeasonDto[]> {
+  const seasons = await prisma.season.findMany({
+    where: visible(options),
+    orderBy: { startDate: 'desc' },
+  });
   return seasons.map(toSeasonDto);
 }
 
@@ -65,8 +76,8 @@ export async function listSeasonsWithDivisions() {
   return seasons.map((s) => ({ ...toSeasonDto(s), divisions: s.divisions }));
 }
 
-export async function getSeason(id: string): Promise<SeasonDto> {
-  const season = await prisma.season.findUnique({ where: { id } });
+export async function getSeason(id: string, options: Visibility = { includeDrafts: true }) {
+  const season = await prisma.season.findFirst({ where: { id, ...visible(options) } });
   if (!season) throw notFound('Season not found');
   return toSeasonDto(season);
 }

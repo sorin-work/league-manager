@@ -1,11 +1,14 @@
-import { requireAdmin } from '@/lib/server/auth';
+import { optionalAdmin, requireAdmin } from '@/lib/server/auth';
 import { handle, json, readJson } from '@/lib/server/http';
 import { deleteSeason, getSeason, updateSeason } from '@/lib/server/services/seasons';
 import { seasonUpdateSchema } from '@/lib/validation';
 
 type Params = { id: string };
 
-export const GET = handle<Params>(async (_req, { id }) => json({ season: await getSeason(id) }));
+export const GET = handle<Params>(async (req, { id }) => {
+  const admin = await optionalAdmin(req);
+  return json({ season: await getSeason(id, { includeDrafts: admin !== null }) });
+});
 
 export const PATCH = handle<Params>(async (req, { id }) => {
   await requireAdmin(req);

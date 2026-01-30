@@ -64,6 +64,11 @@ export async function destroySession(token: string | undefined) {
   await prisma.session.deleteMany({ where: { tokenHash: hashToken(token) } });
 }
 
+/** The signed-in admin for an API request, or null for the public. */
+export function optionalAdmin(req: NextRequest): Promise<AdminIdentity | null> {
+  return findSessionUser(req.cookies.get(SESSION_COOKIE)?.value);
+}
+
 /** Resolves the signed-in admin for an API request or throws a 401. */
 export async function requireAdmin(req: NextRequest): Promise<AdminIdentity> {
   const user = await findSessionUser(req.cookies.get(SESSION_COOKIE)?.value);

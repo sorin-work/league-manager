@@ -3,7 +3,12 @@ import { GET as list, POST as create } from '@/app/api/seasons/route';
 import { DELETE as remove, GET as show, PATCH as update } from '@/app/api/seasons/[id]/route';
 import { adminCookie, call, resetDb } from './helpers';
 
-const autumn = { name: 'Autumn 2025', startDate: '2025-09-06', endDate: '2025-12-13' };
+const autumn = {
+  name: 'Autumn 2025',
+  startDate: '2025-09-06',
+  endDate: '2025-12-13',
+  status: 'ACTIVE',
+};
 
 describe('seasons api', () => {
   let cookie: string;
@@ -51,7 +56,7 @@ describe('seasons api', () => {
     await call(create, { method: 'POST', body: autumn, cookie });
     await call(create, {
       method: 'POST',
-      body: { name: 'Spring 2026', startDate: '2026-03-07', endDate: '2026-06-20' },
+      body: { ...autumn, name: 'Spring 2026', startDate: '2026-03-07', endDate: '2026-06-20' },
       cookie,
     });
     const res = await call(list);
