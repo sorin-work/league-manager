@@ -39,7 +39,7 @@ function EventLabel({ type, name }: { type: EventType; name: string }) {
 
 export default async function MatchPage({ params }: Props) {
   const match = await getMatchDetails((await params).id);
-  if (!match) notFound();
+  if (!match || match.division.season.status === 'DRAFT') notFound();
   const { division } = match;
   const { season } = division;
   const played = match.status === 'PLAYED';

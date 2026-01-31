@@ -4,7 +4,7 @@ import { formatDateRange, plural } from '@/lib/format';
 import { listSeasonsWithDivisions } from '@/lib/server/services/seasons';
 
 export default async function AdminSeasonsPage() {
-  const seasons = await listSeasonsWithDivisions();
+  const seasons = await listSeasonsWithDivisions({ includeDrafts: true });
 
   return (
     <>
@@ -26,7 +26,12 @@ export default async function AdminSeasonsPage() {
                 {seasons.map((s) => (
                   <tr key={s.id}>
                     <td>
-                      <Link href={`/admin/seasons/${s.id}`}>{s.name}</Link>
+                      <Link href={`/admin/seasons/${s.id}`}>{s.name}</Link>{' '}
+                      {s.status !== 'ACTIVE' && (
+                        <span className={s.status === 'DRAFT' ? 'badge warn' : 'badge'}>
+                          {s.status === 'DRAFT' ? 'Draft' : 'Finished'}
+                        </span>
+                      )}
                     </td>
                     <td className="muted small">{formatDateRange(s.startDate, s.endDate)}</td>
                     <td className="num">{plural(s.divisions.length, 'division')}</td>

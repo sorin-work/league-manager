@@ -28,7 +28,10 @@ export async function getTeam(id: string) {
 
 export async function getTeamBySlugs(seasonSlug: string, divisionSlug: string, teamSlug: string) {
   return prisma.team.findFirst({
-    where: { slug: teamSlug, division: { slug: divisionSlug, season: { slug: seasonSlug } } },
+    where: {
+      slug: teamSlug,
+      division: { slug: divisionSlug, season: { slug: seasonSlug, status: { not: 'DRAFT' } } },
+    },
     include: {
       homeVenue: true,
       division: { include: { season: true } },

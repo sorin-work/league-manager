@@ -21,7 +21,7 @@ export async function getDivision(id: string) {
 
 export async function getDivisionBySlugs(seasonSlug: string, divisionSlug: string) {
   return prisma.division.findFirst({
-    where: { slug: divisionSlug, season: { slug: seasonSlug } },
+    where: { slug: divisionSlug, season: { slug: seasonSlug, status: { not: 'DRAFT' } } },
     include: { season: true },
   });
 }

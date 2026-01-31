@@ -62,9 +62,10 @@ export async function listSeasons(options: Visibility = {}): Promise<SeasonDto[]
   return seasons.map(toSeasonDto);
 }
 
-/** Seasons with their divisions, for the public home page. */
-export async function listSeasonsWithDivisions() {
+/** Seasons with their divisions, for the home page and the admin list. */
+export async function listSeasonsWithDivisions(options: Visibility = {}) {
   const seasons = await prisma.season.findMany({
+    where: visible(options),
     orderBy: { startDate: 'desc' },
     include: {
       divisions: {
@@ -82,8 +83,11 @@ export async function getSeason(id: string, options: Visibility = { includeDraft
   return toSeasonDto(season);
 }
 
-export async function getSeasonBySlug(slug: string): Promise<SeasonDto | null> {
-  const season = await prisma.season.findUnique({ where: { slug } });
+export async function getSeasonBySlug(
+  slug: string,
+  options: Visibility = {},
+): Promise<SeasonDto | null> {
+  const season = await prisma.season.findFirst({ where: { slug, ...visible(options) } });
   return season ? toSeasonDto(season) : null;
 }
 

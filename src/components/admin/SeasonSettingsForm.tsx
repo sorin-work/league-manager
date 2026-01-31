@@ -41,6 +41,7 @@ export function SeasonSettingsForm({ season }: { season: SeasonDto }) {
           yellowCardBan: num('yellowCardBan'),
           redCardBan: num('redCardBan'),
           notes: form.get('notes'),
+          status: form.get('status'),
         },
       });
       setSaved(true);
@@ -86,6 +87,15 @@ export function SeasonSettingsForm({ season }: { season: SeasonDto }) {
         Notes <span className="hint">shown on the season page; blank lines start a paragraph</span>
         <textarea name="notes" rows={5} defaultValue={season.notes ?? ''} />
         {fieldError('notes')}
+      </label>
+
+      <label>
+        Status
+        <select name="status" defaultValue={season.status}>
+          <option value="DRAFT">Draft (only visible to admins)</option>
+          <option value="ACTIVE">Active</option>
+          <option value="FINISHED">Finished</option>
+        </select>
       </label>
 
       <fieldset>
