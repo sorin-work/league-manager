@@ -145,6 +145,9 @@ model Match {
   events     MatchEvent[]
 
   @@index([divisionId, round])
+  @@index([status, kickoffAt])
+  @@index([homeTeamId])
+  @@index([awayTeamId])
 }
 
 enum EventType {
