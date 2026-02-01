@@ -24,6 +24,20 @@ export async function listDivisionMatches(divisionId: string, filter: { round?: 
   });
 }
 
+/** Next scheduled matches across all public seasons. */
+export function listUpcomingMatches(limit = 8, now = new Date()) {
+  return prisma.match.findMany({
+    where: {
+      status: 'SCHEDULED',
+      kickoffAt: { gte: now },
+      division: { season: { status: { not: 'DRAFT' } } },
+    },
+    include: { ...matchInclude, division: { include: { season: true } } },
+    orderBy: { kickoffAt: 'asc' },
+    take: limit,
+  });
+}
+
 export function listTeamMatches(teamId: string) {
   return prisma.match.findMany({
     where: { OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }] },

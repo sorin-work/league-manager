@@ -1,12 +1,18 @@
 import Link from 'next/link';
+import { UpcomingMatches } from '@/components/UpcomingMatches';
 import { formatDateRange, plural } from '@/lib/format';
+import { listUpcomingMatches } from '@/lib/server/services/matches';
 import { listSeasonsWithDivisions } from '@/lib/server/services/seasons';
 
 export default async function HomePage() {
-  const seasons = await listSeasonsWithDivisions();
+  const [seasons, upcoming] = await Promise.all([
+    listSeasonsWithDivisions(),
+    listUpcomingMatches(),
+  ]);
 
   return (
     <div className="container">
+      <UpcomingMatches matches={upcoming} />
       <h1>Seasons</h1>
       {seasons.length === 0 ? (
         <div className="card empty">No seasons yet. Check back once the league has started.</div>
