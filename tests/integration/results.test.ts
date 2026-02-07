@@ -54,6 +54,18 @@ describe('PUT /api/matches/:id/result', () => {
     expect(res.body.match.events[0]).toMatchObject({ minute: 12, teamId: m.homeTeamId });
   });
 
+  it('requires an admin', async () => {
+    const [m] = await matchesInOrder();
+    const res = await call(saveResult, {
+      method: 'PUT',
+      params: { id: m.id },
+      body: { homeScore: 9, awayScore: 0 },
+    });
+    expect(res.status).toBe(401);
+    const unchanged = await prisma.match.findUniqueOrThrow({ where: { id: m.id } });
+    expect(unchanged.status).toBe('SCHEDULED');
+  });
+
   it('replaces events when the result is entered again', async () => {
     const [m] = await matchesInOrder();
     await enter(m.id, {

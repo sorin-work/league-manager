@@ -6,6 +6,7 @@ import { resultSchema } from '@/lib/validation';
 type Params = { id: string };
 
 export const PUT = handle<Params>(async (req, { id }) => {
+  await requireAdmin(req);
   const input = resultSchema.parse(await readJson(req));
   return json({ match: await saveResult(id, input) });
 });
