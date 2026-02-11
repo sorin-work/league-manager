@@ -55,6 +55,18 @@ describe('auth routes', () => {
     expect(res.body.error).toBe('Invalid email or password');
   });
 
+  it('blocks an address after five failed attempts', async () => {
+    const attempt = (password: string) =>
+      call(login, {
+        method: 'POST',
+        body: { email: 'blocked@example.com', password },
+      });
+    for (let i = 0; i < 5; i++) expect((await attempt('wrong')).status).toBe(401);
+    const blocked = await attempt('wrong');
+    expect(blocked.status).toBe(429);
+    expect(Number(blocked.headers.get('retry-after'))).toBeGreaterThan(0);
+  });
+
   it('validates the request body', async () => {
     const res = await call(login, { method: 'POST', body: { email: 'not-an-email' } });
     expect(res.status).toBe(400);
