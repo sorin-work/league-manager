@@ -109,7 +109,7 @@ export function computeSuspensions(
           continue;
         }
         yellows += y;
-        if (yellows > rules.yellowCardLimit) {
+        if (yellows >= rules.yellowCardLimit) {
           yellows -= rules.yellowCardLimit;
           ban(i, 'YELLOW_CARDS', rules.yellowCardBan);
         }

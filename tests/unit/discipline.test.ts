@@ -43,6 +43,18 @@ describe('computeSuspensions (yellow cards)', () => {
     expect(ban.length).toBe(2);
   });
 
+  it('bans as soon as the limit is reached', () => {
+    const cards = [yellow('m1'), yellow('m2'), yellow('m3')];
+    const [ban] = computeSuspensions(fixtures(6, 3), cards, rules);
+    expect(ban).toMatchObject({ triggeredByMatchId: 'm3', matchIds: ['m4'] });
+  });
+
+  it('starts counting again after a yellow card ban', () => {
+    const cards = ['m1', 'm2', 'm3', 'm5', 'm6', 'm7'].map((m) => yellow(m));
+    const bans = computeSuspensions(fixtures(10, 7), cards, rules);
+    expect(bans.map((b) => b.triggeredByMatchId)).toEqual(['m3', 'm7']);
+  });
+
   it('counts served and remaining matches of a ban', () => {
     const cards = [yellow('m1'), yellow('m2'), yellow('m3'), yellow('m4')];
     const [ban] = computeSuspensions(fixtures(8, 8), cards, rules);
