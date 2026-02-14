@@ -3,7 +3,9 @@ import { notFound } from 'next/navigation';
 import { ResultForm } from '@/components/admin/ResultForm';
 import { ScheduleForm } from '@/components/admin/ScheduleForm';
 import { formatKickoff, toLocalInput } from '@/lib/domain/time';
+import { suspendedFor } from '@/lib/domain/discipline';
 import { prisma } from '@/lib/server/db';
+import { getDivisionSuspensions } from '@/lib/server/services/discipline';
 import { getMatchDetails } from '@/lib/server/services/matches';
 import { listVenues } from '@/lib/server/services/venues';
 
@@ -12,14 +14,16 @@ type Props = { params: Promise<{ id: string }> };
 export default async function AdminMatchPage({ params }: Props) {
   const match = await getMatchDetails((await params).id);
   if (!match) notFound();
-  const [venues, players] = await Promise.all([
+  const [venues, players, suspensions] = await Promise.all([
     listVenues(),
     prisma.player.findMany({
       where: { teamId: { in: [match.homeTeamId, match.awayTeamId] } },
       orderBy: [{ shirtNumber: 'asc' }, { name: 'asc' }],
       select: { id: true, name: true, shirtNumber: true, teamId: true },
     }),
+    getDivisionSuspensions(match.divisionId),
   ]);
+  const suspended = suspendedFor(suspensions, match.id);
   const squad = (teamId: string) => players.filter((p) => p.teamId === teamId);
   const { division } = match;
   const tz = division.season.timezone;
@@ -57,6 +61,7 @@ export default async function AdminMatchPage({ params }: Props) {
             home={{ ...match.homeTeam, players: squad(match.homeTeamId) }}
             away={{ ...match.awayTeam, players: squad(match.awayTeamId) }}
             played={match.status === 'PLAYED'}
+            suspendedIds={[...suspended]}
             homeScore={match.homeScore}
             awayScore={match.awayScore}
             events={match.events.map((e) => ({

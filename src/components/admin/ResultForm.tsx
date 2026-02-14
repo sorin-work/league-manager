@@ -23,6 +23,8 @@ interface Props {
   home: Side;
   away: Side;
   played: boolean;
+  /** Players banned from this match; picking them is allowed but flagged. */
+  suspendedIds?: string[];
   homeScore: number | null;
   awayScore: number | null;
   events: { playerId: string; type: EventType; minute: number | null }[];
@@ -45,6 +47,11 @@ export function ResultForm(props: Props) {
     })),
   );
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const suspended = new Set(props.suspendedIds ?? []);
+  const allPlayers = [...props.home.players, ...props.away.players];
+  const suspendedNames = allPlayers.filter((p) => suspended.has(p.id)).map((p) => p.name);
+  const usedSuspended = rows.some((r) => suspended.has(r.playerId));
 
   const update = (key: number, patch: Partial<EventRow>) =>
     setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
@@ -88,6 +95,7 @@ export function ResultForm(props: Props) {
             <option key={p.id} value={p.id}>
               {p.shirtNumber ? `${p.shirtNumber}. ` : ''}
               {p.name}
+              {suspended.has(p.id) ? ' (suspended)' : ''}
             </option>
           ))}
         </optgroup>
@@ -98,6 +106,12 @@ export function ResultForm(props: Props) {
   return (
     <form onSubmit={onSubmit} className="form">
       {message && <p className={`alert ${message.ok ? 'success' : 'error'}`}>{message.text}</p>}
+      {suspendedNames.length > 0 && (
+        <p className={`alert ${usedSuspended ? 'error' : 'warning'}`}>
+          Suspended for this match: {suspendedNames.join(', ')}.
+          {usedSuspended && ' A suspended player is listed in the match events.'}
+        </p>
+      )}
       <div className="score-inputs">
         <label>
           {props.home.name}
