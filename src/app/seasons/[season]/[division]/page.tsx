@@ -4,9 +4,12 @@ import { notFound } from 'next/navigation';
 import { MatchList } from '@/components/MatchList';
 import { ScorersTable } from '@/components/ScorersTable';
 import { StandingsTable } from '@/components/StandingsTable';
+import { SuspensionsTable } from '@/components/SuspensionsTable';
 import { Tabs } from '@/components/Tabs';
+import { activeSuspensions } from '@/lib/domain/discipline';
 import { TIEBREAKER_LABELS, type Tiebreaker } from '@/lib/domain/standings';
 import { prisma } from '@/lib/server/db';
+import { getDivisionSuspensions } from '@/lib/server/services/discipline';
 import { getDivisionBySlugs } from '@/lib/server/services/divisions';
 import { listDivisionMatches } from '@/lib/server/services/matches';
 import { getDivisionScorers } from '@/lib/server/services/scorers';
@@ -22,6 +25,7 @@ const TABS = [
   { id: 'fixtures', label: 'Fixtures' },
   { id: 'results', label: 'Results' },
   { id: 'scorers', label: 'Top scorers' },
+  { id: 'suspensions', label: 'Suspensions' },
 ];
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -38,7 +42,7 @@ export default async function DivisionPage({ params, searchParams }: Props) {
   if (!division) notFound();
   const { season } = division;
 
-  const [{ standings, rules }, teams, matches, scorers] = await Promise.all([
+  const [{ standings, rules }, teams, matches, scorers, suspensions] = await Promise.all([
     getDivisionStandings(division.id),
     prisma.team.findMany({
       where: { divisionId: division.id },
@@ -48,6 +52,7 @@ export default async function DivisionPage({ params, searchParams }: Props) {
       ? listDivisionMatches(division.id)
       : Promise.resolve([]),
     tab === 'scorers' ? getDivisionScorers(division.id) : Promise.resolve([]),
+    tab === 'suspensions' ? getDivisionSuspensions(division.id) : Promise.resolve([]),
   ]);
   const slugOf = new Map(teams.map((t) => [t.id, t.slug]));
   const base = `/seasons/${season.slug}/${division.slug}`;
@@ -93,6 +98,15 @@ export default async function DivisionPage({ params, searchParams }: Props) {
             timeZone={season.timezone}
             newestFirst
             emptyText="No results yet."
+          />
+        </section>
+      )}
+
+      {tab === 'suspensions' && (
+        <section className="card">
+          <SuspensionsTable
+            rows={activeSuspensions(suspensions)}
+            yellowLimit={season.yellowCardLimit}
           />
         </section>
       )}
