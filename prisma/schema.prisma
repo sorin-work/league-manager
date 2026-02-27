@@ -65,35 +65,51 @@ model Season {
 }
 
 model Division {
-  id        String        @id @default(cuid())
-  seasonId  String
-  season    Season        @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  name      String
-  slug      String
-  format    FixtureFormat @default(SINGLE)
-  sortOrder Int           @default(0)
-  createdAt DateTime      @default(now())
-  teams     Team[]
-  matches   Match[]
+  id          String             @id @default(cuid())
+  seasonId    String
+  season      Season             @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String
+  format      FixtureFormat      @default(SINGLE)
+  sortOrder   Int                @default(0)
+  createdAt   DateTime           @default(now())
+  teams       Team[]
+  matches     Match[]
+  adjustments PointsAdjustment[]
 
   @@unique([seasonId, slug])
 }
 
 model Team {
-  id          String   @id @default(cuid())
+  id          String             @id @default(cuid())
   divisionId  String
-  division    Division @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  division    Division           @relation(fields: [divisionId], references: [id], onDelete: Cascade)
   name        String
   shortName   String?
   slug        String
   homeVenueId String?
-  homeVenue   Venue?   @relation(fields: [homeVenueId], references: [id], onDelete: SetNull)
-  createdAt   DateTime @default(now())
+  homeVenue   Venue?             @relation(fields: [homeVenueId], references: [id], onDelete: SetNull)
+  createdAt   DateTime           @default(now())
   players     Player[]
-  homeMatches Match[]  @relation("HomeTeam")
-  awayMatches Match[]  @relation("AwayTeam")
+  adjustments PointsAdjustment[]
+  homeMatches Match[]            @relation("HomeTeam")
+  awayMatches Match[]            @relation("AwayTeam")
 
   @@unique([divisionId, slug])
+}
+
+/// Points added to or (usually) taken off a team, e.g. for fielding a suspended player
+model PointsAdjustment {
+  id         String   @id @default(cuid())
+  divisionId String
+  division   Division @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  teamId     String
+  team       Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  points     Int
+  reason     String
+  createdAt  DateTime @default(now())
+
+  @@index([divisionId])
 }
 
 model Player {
