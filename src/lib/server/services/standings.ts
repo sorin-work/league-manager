@@ -12,7 +12,7 @@ export async function getDivisionStandings(divisionId: string) {
     tiebreakers: season.tiebreakers as Tiebreaker[],
   };
 
-  const [teams, matches] = await Promise.all([
+  const [teams, matches, adjustments] = await Promise.all([
     prisma.team.findMany({ where: { divisionId }, select: { id: true, name: true } }),
     prisma.match.findMany({
       where: { divisionId, homeScore: { not: null }, awayScore: { not: null } },
@@ -24,6 +24,10 @@ export async function getDivisionStandings(divisionId: string) {
         kickoffAt: true,
       },
     }),
+    prisma.pointsAdjustment.findMany({
+      where: { divisionId },
+      select: { teamId: true, points: true },
+    }),
   ]);
 
   const results = matches.map((m) => ({
@@ -34,5 +38,5 @@ export async function getDivisionStandings(divisionId: string) {
     playedAt: m.kickoffAt,
   }));
 
-  return { rules, standings: computeStandings(teams, results, rules) };
+  return { rules, standings: computeStandings(teams, results, rules, adjustments) };
 }

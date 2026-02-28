@@ -155,5 +155,17 @@ export const resultSchema = z.object({
   events: z.array(matchEventSchema).max(80).default([]),
 });
 
+export const adjustmentSchema = z.object({
+  teamId: z.string().min(1),
+  points: z
+    .int('Must be a whole number')
+    .min(-100)
+    .max(100)
+    .refine((n) => n !== 0, 'An adjustment of zero points does nothing'),
+  reason: z.string().trim().min(1, 'Say why the points are adjusted').max(200),
+});
+
+export type AdjustmentInput = z.infer<typeof adjustmentSchema>;
+
 export type MatchEventInput = z.infer<typeof matchEventSchema>;
 export type ResultInput = z.infer<typeof resultSchema>;
