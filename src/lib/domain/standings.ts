@@ -40,6 +40,12 @@ export interface MatchResult {
   playedAt?: Date | null;
 }
 
+/** Points added to (positive) or deducted from (negative) a team's total. */
+export interface PointsAdjustment {
+  teamId: string;
+  points: number;
+}
+
 export type FormResult = 'W' | 'D' | 'L';
 export const FORM_LENGTH = 5;
 
@@ -55,6 +61,8 @@ export interface StandingRow {
   goalsAgainst: number;
   goalDifference: number;
   points: number;
+  /** Sum of points adjustments, already included in `points`. */
+  adjustment: number;
   /** Last results, oldest first. */
   form: FormResult[];
 }
@@ -72,6 +80,7 @@ function emptyRow(team: StandingsTeam): StandingRow {
     goalsAgainst: 0,
     goalDifference: 0,
     points: 0,
+    adjustment: 0,
     form: [],
   };
 }
@@ -194,12 +203,21 @@ export function computeStandings(
   teams: StandingsTeam[],
   results: MatchResult[],
   rules: StandingsRules = DEFAULT_RULES,
+  adjustments: PointsAdjustment[] = [],
 ): StandingRow[] {
   const ids = new Set(teams.map((t) => t.id));
   const valid = chronological(
     results.filter((r) => ids.has(r.homeTeamId) && ids.has(r.awayTeamId)),
   );
-  const rows = [...tabulate(teams, valid, rules).values()];
+  const table = tabulate(teams, valid, rules);
+  // adjustments count for the overall table only, not for head-to-head
+  for (const a of adjustments) {
+    const row = table.get(a.teamId);
+    if (!row) continue;
+    row.adjustment += a.points;
+    row.points += a.points;
+  }
+  const rows = [...table.values()];
 
   const sorted = splitBy(rows, (r) => [r.points]).flatMap((group) =>
     rank(group, rules.tiebreakers, valid, rules),

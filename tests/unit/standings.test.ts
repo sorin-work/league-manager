@@ -91,6 +91,28 @@ describe('computeStandings', () => {
     expect(computeStandings(teams, [])[0].form).toEqual([]);
   });
 
+  it('applies points adjustments', () => {
+    const table = computeStandings(
+      teams,
+      [result('a', 'b', 1, 0), result('c', 'd', 1, 0)],
+      undefined,
+      [
+        { teamId: 'a', points: -3 },
+        { teamId: 'a', points: -1 },
+        { teamId: 'd', points: 2 },
+      ],
+    );
+    const byId = Object.fromEntries(table.map((r) => [r.teamId, r]));
+    expect(byId.a).toMatchObject({ points: -1, adjustment: -4 });
+    expect(byId.d).toMatchObject({ points: 2, adjustment: 2 });
+    expect(table.map((r) => r.teamId)).toEqual(['c', 'd', 'b', 'a']);
+  });
+
+  it('ignores adjustments for unknown teams', () => {
+    const table = computeStandings(teams, [], undefined, [{ teamId: 'zz', points: 5 }]);
+    expect(table.every((r) => r.points === 0)).toBe(true);
+  });
+
   it('ignores results for teams that are not in the division', () => {
     const table = computeStandings(teams, [result('a', 'zz', 5, 0)]);
     expect(table.every((r) => r.played === 0)).toBe(true);
