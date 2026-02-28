@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { AdjustmentsPanel } from '@/components/admin/AdjustmentsPanel';
 import { AdminMatchTable } from '@/components/admin/AdminMatchTable';
 import { DeleteButton } from '@/components/admin/DeleteButton';
 import { GenerateFixturesForm } from '@/components/admin/GenerateFixturesForm';
 import { NewTeamForm } from '@/components/admin/NewTeamForm';
 import { plural } from '@/lib/format';
+import { listAdjustments } from '@/lib/server/services/adjustments';
 import { getDivision } from '@/lib/server/services/divisions';
 import { listDivisionMatches } from '@/lib/server/services/matches';
 import { listTeams } from '@/lib/server/services/teams';
@@ -15,10 +17,11 @@ type Props = { params: Promise<{ id: string }> };
 export default async function AdminDivisionPage({ params }: Props) {
   const division = await getDivision((await params).id).catch(() => null);
   if (!division) notFound();
-  const [teams, venues, matches] = await Promise.all([
+  const [teams, venues, matches, adjustments] = await Promise.all([
     listTeams(division.id),
     listVenues(),
     listDivisionMatches(division.id),
+    listAdjustments(division.id),
   ]);
   const seasonStart = division.season.startDate.toISOString().slice(0, 10);
 
@@ -55,6 +58,15 @@ export default async function AdminDivisionPage({ params }: Props) {
         )}
         <h3>Add a team</h3>
         <NewTeamForm divisionId={division.id} venues={venues} />
+      </section>
+
+      <section className="card">
+        <h2>Points adjustments</h2>
+        <AdjustmentsPanel
+          divisionId={division.id}
+          teams={teams.map((t) => ({ id: t.id, name: t.name }))}
+          adjustments={adjustments}
+        />
       </section>
 
       <section className="card">
