@@ -59,7 +59,12 @@ export function StandingsTable({ rows, teamHref }: Props) {
               <td className="num">
                 {row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference}
               </td>
-              <td className="num pts">{row.points}</td>
+              <td className="num pts">
+                {row.points}
+                {row.adjustment !== 0 && (
+                  <sup title={`Includes ${row.adjustment} points adjustment`}>*</sup>
+                )}
+              </td>
               <td className="form-col">
                 {row.form.map((f, i) => (
                   <span key={i} className={`form-pill form-${f}`} title={FORM_TITLES[f]}>

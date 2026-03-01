@@ -9,6 +9,7 @@ import { Tabs } from '@/components/Tabs';
 import { activeSuspensions } from '@/lib/domain/discipline';
 import { TIEBREAKER_LABELS, type Tiebreaker } from '@/lib/domain/standings';
 import { prisma } from '@/lib/server/db';
+import { listAdjustments } from '@/lib/server/services/adjustments';
 import { getDivisionSuspensions } from '@/lib/server/services/discipline';
 import { getDivisionBySlugs } from '@/lib/server/services/divisions';
 import { listDivisionMatches } from '@/lib/server/services/matches';
@@ -42,18 +43,20 @@ export default async function DivisionPage({ params, searchParams }: Props) {
   if (!division) notFound();
   const { season } = division;
 
-  const [{ standings, rules }, teams, matches, scorers, suspensions] = await Promise.all([
-    getDivisionStandings(division.id),
-    prisma.team.findMany({
-      where: { divisionId: division.id },
-      select: { id: true, slug: true, name: true },
-    }),
-    tab === 'fixtures' || tab === 'results'
-      ? listDivisionMatches(division.id)
-      : Promise.resolve([]),
-    tab === 'scorers' ? getDivisionScorers(division.id) : Promise.resolve([]),
-    tab === 'suspensions' ? getDivisionSuspensions(division.id) : Promise.resolve([]),
-  ]);
+  const [{ standings, rules }, teams, matches, scorers, suspensions, adjustments] =
+    await Promise.all([
+      getDivisionStandings(division.id),
+      prisma.team.findMany({
+        where: { divisionId: division.id },
+        select: { id: true, slug: true, name: true },
+      }),
+      tab === 'fixtures' || tab === 'results'
+        ? listDivisionMatches(division.id)
+        : Promise.resolve([]),
+      tab === 'scorers' ? getDivisionScorers(division.id) : Promise.resolve([]),
+      tab === 'suspensions' ? getDivisionSuspensions(division.id) : Promise.resolve([]),
+      tab === 'table' ? listAdjustments(division.id) : Promise.resolve([]),
+    ]);
   const slugOf = new Map(teams.map((t) => [t.id, t.slug]));
   const base = `/seasons/${season.slug}/${division.slug}`;
 
@@ -131,6 +134,16 @@ export default async function DivisionPage({ params, searchParams }: Props) {
               : 'name'}
             .
           </p>
+          {adjustments.length > 0 && (
+            <ul className="muted small adjustments">
+              {adjustments.map((a) => (
+                <li key={a.id}>
+                  * {a.team.name}: {a.points > 0 ? `+${a.points}` : a.points}{' '}
+                  {Math.abs(a.points) === 1 ? 'point' : 'points'} ({a.reason})
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       )}
     </div>
