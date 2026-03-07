@@ -15,6 +15,17 @@ describe('slugify', () => {
     expect(slugify('  Red   Lions!! (Reserves) ')).toBe('red-lions-reserves');
   });
 
+  it('keeps accented letters as their plain form', () => {
+    expect(slugify('Ştiinţa Bacău')).toBe('stiinta-bacau');
+    expect(slugify('Kickers München')).toBe('kickers-munchen');
+    expect(slugify('Atlético Señora')).toBe('atletico-senora');
+  });
+
+  it('spells out letters without a plain form', () => {
+    expect(slugify('Großbeeren')).toBe('grossbeeren');
+    expect(slugify('Łódź Ørsted')).toBe('lodz-orsted');
+  });
+
   it('trims leading and trailing dashes', () => {
     expect(slugify('--Division One--')).toBe('division-one');
   });

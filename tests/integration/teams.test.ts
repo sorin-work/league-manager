@@ -132,6 +132,11 @@ describe('teams', () => {
     expect(res.body.teams[0]._count.players).toBe(1);
   });
 
+  it('makes readable slugs for names with accents', async () => {
+    const res = await team(await division(), 'Ştiinţa Mioveni');
+    expect(res.body.team.slug).toBe('stiinta-mioveni');
+  });
+
   it('allows the same team name in two divisions', async () => {
     const a = await team(await division('One'), 'United');
     const b = await team(await division('Two'), 'United');
