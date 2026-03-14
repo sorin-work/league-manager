@@ -215,6 +215,32 @@ tbody tr:hover {
   font-weight: 700;
 }
 
+.standings tr.zone-up td:first-child {
+  box-shadow: inset 4px 0 0 #1f9254;
+}
+
+.standings tr.zone-down td:first-child {
+  box-shadow: inset 4px 0 0 #d92d20;
+}
+
+.legend {
+  display: flex;
+  gap: 1rem;
+  color: var(--muted);
+}
+
+.legend .key {
+  padding-left: 0.6rem;
+}
+
+.legend .key.zone-up {
+  border-left: 4px solid #1f9254;
+}
+
+.legend .key.zone-down {
+  border-left: 4px solid #d92d20;
+}
+
 .form-pill {
   display: inline-block;
   width: 1.3rem;

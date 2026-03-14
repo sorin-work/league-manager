@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { AdjustmentsPanel } from '@/components/admin/AdjustmentsPanel';
 import { AdminMatchTable } from '@/components/admin/AdminMatchTable';
 import { DeleteButton } from '@/components/admin/DeleteButton';
+import { DivisionSettingsForm } from '@/components/admin/DivisionSettingsForm';
 import { GenerateFixturesForm } from '@/components/admin/GenerateFixturesForm';
 import { NewTeamForm } from '@/components/admin/NewTeamForm';
 import { plural } from '@/lib/format';
@@ -58,6 +59,11 @@ export default async function AdminDivisionPage({ params }: Props) {
         )}
         <h3>Add a team</h3>
         <NewTeamForm divisionId={division.id} venues={venues} />
+      </section>
+
+      <section className="card">
+        <h2>Settings</h2>
+        <DivisionSettingsForm division={division} />
       </section>
 
       <section className="card">

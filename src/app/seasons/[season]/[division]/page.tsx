@@ -122,7 +122,18 @@ export default async function DivisionPage({ params, searchParams }: Props) {
 
       {tab === 'table' && (
         <section className="card">
-          <StandingsTable rows={standings} teamHref={(id) => `${base}/teams/${slugOf.get(id)}`} />
+          <StandingsTable
+            rows={standings}
+            teamHref={(id) => `${base}/teams/${slugOf.get(id)}`}
+            promotionPlaces={division.promotionPlaces}
+            relegationPlaces={division.relegationPlaces}
+          />
+          {(division.promotionPlaces > 0 || division.relegationPlaces > 0) && (
+            <p className="legend small">
+              {division.promotionPlaces > 0 && <span className="key zone-up">Promotion</span>}
+              {division.relegationPlaces > 0 && <span className="key zone-down">Relegation</span>}
+            </p>
+          )}
           <p className="muted small">
             {rules.pointsForWin} points for a win, {rules.pointsForDraw} for a draw
             {rules.pointsForLoss > 0 ? `, ${rules.pointsForLoss} for a loss` : ''}. Teams level on

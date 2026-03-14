@@ -6,9 +6,22 @@ const FORM_TITLES: Record<FormResult, string> = { W: 'Won', D: 'Drawn', L: 'Lost
 interface Props {
   rows: StandingRow[];
   teamHref: (teamId: string) => string;
+  promotionPlaces?: number;
+  relegationPlaces?: number;
 }
 
-export function StandingsTable({ rows, teamHref }: Props) {
+export function StandingsTable({
+  rows,
+  teamHref,
+  promotionPlaces = 0,
+  relegationPlaces = 0,
+}: Props) {
+  const zone = (position: number) => {
+    if (position <= promotionPlaces) return 'zone-up';
+    if (position > rows.length - relegationPlaces) return 'zone-down';
+    return undefined;
+  };
+
   if (rows.length === 0) return <div className="empty">No teams in this division yet.</div>;
 
   return (
@@ -45,7 +58,7 @@ export function StandingsTable({ rows, teamHref }: Props) {
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.teamId}>
+            <tr key={row.teamId} className={zone(row.position)}>
               <td className="num">{row.position}</td>
               <td className="team">
                 <Link href={teamHref(row.teamId)}>{row.name}</Link>
