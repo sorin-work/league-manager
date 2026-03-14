@@ -65,17 +65,21 @@ model Season {
 }
 
 model Division {
-  id          String             @id @default(cuid())
-  seasonId    String
-  season      Season             @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  name        String
-  slug        String
-  format      FixtureFormat      @default(SINGLE)
-  sortOrder   Int                @default(0)
-  createdAt   DateTime           @default(now())
-  teams       Team[]
-  matches     Match[]
-  adjustments PointsAdjustment[]
+  id               String             @id @default(cuid())
+  seasonId         String
+  season           Season             @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  name             String
+  slug             String
+  format           FixtureFormat      @default(SINGLE)
+  sortOrder        Int                @default(0)
+  /// Top N teams marked as promoted in the table
+  promotionPlaces  Int                @default(0)
+  /// Bottom N teams marked as relegated in the table
+  relegationPlaces Int                @default(0)
+  createdAt        DateTime           @default(now())
+  teams            Team[]
+  matches          Match[]
+  adjustments      PointsAdjustment[]
 
   @@unique([seasonId, slug])
 }

@@ -67,11 +67,15 @@ const divisionFields = z.object({
   name,
   format: z.enum(['SINGLE', 'DOUBLE']),
   sortOrder: z.int().min(0).max(999),
+  promotionPlaces: z.int().min(0).max(10),
+  relegationPlaces: z.int().min(0).max(10),
 });
 
 export const divisionSchema = divisionFields.extend({
   format: divisionFields.shape.format.default('SINGLE'),
   sortOrder: divisionFields.shape.sortOrder.default(0),
+  promotionPlaces: divisionFields.shape.promotionPlaces.default(0),
+  relegationPlaces: divisionFields.shape.relegationPlaces.default(0),
 });
 export const divisionUpdateSchema = divisionFields.partial();
 
