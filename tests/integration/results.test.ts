@@ -113,6 +113,19 @@ describe('PUT /api/matches/:id/result', () => {
     expect(res.status).toBe(200);
   });
 
+  it('rejects players who are not in either team', async () => {
+    const [m] = await matchesInOrder();
+    const outsider = league.teams.find((t) => t.id !== m.homeTeamId && t.id !== m.awayTeamId)!;
+    const res = await enter(m.id, {
+      homeScore: 1,
+      awayScore: 0,
+      events: [{ playerId: outsider.players[0].id, type: 'GOAL' }],
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/does not play for either team/);
+    expect(await prisma.matchEvent.count()).toBe(0);
+  });
+
   it('rejects unknown players and bad scores', async () => {
     const [m] = await matchesInOrder();
     const unknown = await enter(m.id, {

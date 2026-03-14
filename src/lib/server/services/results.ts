@@ -16,6 +16,10 @@ export async function saveResult(matchId: string, input: ResultInput) {
   const playerIds = [...new Set(input.events.map((e) => e.playerId))];
   const players = await prisma.player.findMany({ where: { id: { in: playerIds } } });
   if (players.length !== playerIds.length) throw badRequest('Unknown player in match events');
+  const outsider = players.find(
+    (p) => p.teamId !== match.homeTeamId && p.teamId !== match.awayTeamId,
+  );
+  if (outsider) throw badRequest(`${outsider.name} does not play for either team`);
   const teamOf = new Map(players.map((p) => [p.id, p.teamId]));
 
   let homeGoals = 0;
