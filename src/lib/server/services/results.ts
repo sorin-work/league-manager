@@ -1,4 +1,4 @@
-import type { ResultInput } from '@/lib/validation';
+import type { ResultInput, WalkoverInput } from '@/lib/validation';
 import { prisma } from '../db';
 import { badRequest, conflict } from '../http';
 import { getMatch, matchInclude } from './matches';
@@ -50,8 +50,33 @@ export async function saveResult(matchId: string, input: ResultInput) {
     });
     return tx.match.update({
       where: { id: matchId },
-      data: { status: 'PLAYED', homeScore: input.homeScore, awayScore: input.awayScore },
+      data: {
+        status: 'PLAYED',
+        homeScore: input.homeScore,
+        awayScore: input.awayScore,
+        walkover: false,
+      },
       include: { ...matchInclude, events: { orderBy: [{ minute: 'asc' }, { createdAt: 'asc' }] } },
+    });
+  });
+}
+
+/** Awards the match to one side without it being played; any events are dropped. */
+export async function awardWalkover(matchId: string, input: WalkoverInput) {
+  const match = await getMatch(matchId);
+  if (match.status === 'CANCELLED') throw conflict('This match was cancelled');
+  const home = input.winner === 'HOME';
+  return prisma.$transaction(async (tx) => {
+    await tx.matchEvent.deleteMany({ where: { matchId } });
+    return tx.match.update({
+      where: { id: matchId },
+      data: {
+        status: 'PLAYED',
+        walkover: true,
+        homeScore: home ? input.goals : 0,
+        awayScore: home ? 0 : input.goals,
+      },
+      include: matchInclude,
     });
   });
 }
@@ -63,7 +88,7 @@ export async function clearResult(matchId: string) {
     await tx.matchEvent.deleteMany({ where: { matchId } });
     return tx.match.update({
       where: { id: matchId },
-      data: { status: 'SCHEDULED', homeScore: null, awayScore: null },
+      data: { status: 'SCHEDULED', homeScore: null, awayScore: null, walkover: false },
       include: matchInclude,
     });
   });

@@ -6,6 +6,7 @@ import * as division from '@/app/api/divisions/[id]/route';
 import * as divisionTeams from '@/app/api/divisions/[id]/teams/route';
 import * as matchResult from '@/app/api/matches/[id]/result/route';
 import * as match from '@/app/api/matches/[id]/route';
+import * as matchWalkover from '@/app/api/matches/[id]/walkover/route';
 import * as player from '@/app/api/players/[id]/route';
 import * as seasonDivisions from '@/app/api/seasons/[id]/divisions/route';
 import * as season from '@/app/api/seasons/[id]/route';
@@ -36,6 +37,7 @@ const routes: [string, RouteModule][] = [
   ['/api/venues/:id', venue],
   ['/api/matches/:id', match],
   ['/api/matches/:id/result', matchResult],
+  ['/api/matches/:id/walkover', matchWalkover],
 ];
 
 const writes = routes.flatMap(([path, mod]) =>

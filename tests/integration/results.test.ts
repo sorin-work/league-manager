@@ -4,6 +4,7 @@ import { GET as scorers } from '@/app/api/divisions/[id]/scorers/route';
 import { GET as standings } from '@/app/api/divisions/[id]/standings/route';
 import { GET as suspensions } from '@/app/api/divisions/[id]/suspensions/route';
 import { DELETE as clearResult, PUT as saveResult } from '@/app/api/matches/[id]/result/route';
+import { POST as walkover } from '@/app/api/matches/[id]/walkover/route';
 import { prisma } from '@/lib/server/db';
 import { adminCookie, call, createLeague, resetDb } from './helpers';
 
@@ -153,6 +154,55 @@ describe('PUT /api/matches/:id/result', () => {
     const res = await call(clearResult, { method: 'DELETE', params: { id: m.id }, cookie });
     expect(res.body.match).toMatchObject({ status: 'SCHEDULED', homeScore: null });
     expect(await prisma.matchEvent.count()).toBe(0);
+  });
+});
+
+describe('POST /api/matches/:id/walkover', () => {
+  it('awards the match 3-0 and drops any events', async () => {
+    const [m] = await matchesInOrder();
+    await enter(m.id, {
+      homeScore: 1,
+      awayScore: 1,
+      events: [{ playerId: playerOf(m.homeTeamId), type: 'GOAL' }],
+    });
+    const res = await call(walkover, {
+      method: 'POST',
+      params: { id: m.id },
+      body: { winner: 'AWAY' },
+      cookie,
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.match).toMatchObject({
+      status: 'PLAYED',
+      walkover: true,
+      homeScore: 0,
+      awayScore: 3,
+    });
+    expect(await prisma.matchEvent.count({ where: { matchId: m.id } })).toBe(0);
+  });
+
+  it('counts in the table like any other result', async () => {
+    const [m] = await matchesInOrder();
+    await call(walkover, {
+      method: 'POST',
+      params: { id: m.id },
+      body: { winner: 'HOME' },
+      cookie,
+    });
+    const res = await call(standings, { params: { id: league.division.id } });
+    expect(res.body.standings[0]).toMatchObject({ teamId: m.homeTeamId, points: 3, goalsFor: 3 });
+  });
+
+  it('is cleared when a normal result is entered', async () => {
+    const [m] = await matchesInOrder();
+    await call(walkover, {
+      method: 'POST',
+      params: { id: m.id },
+      body: { winner: 'HOME' },
+      cookie,
+    });
+    const res = await enter(m.id, { homeScore: 2, awayScore: 2 });
+    expect(res.body.match.walkover).toBe(false);
   });
 });
 

@@ -171,5 +171,12 @@ export const adjustmentSchema = z.object({
 
 export type AdjustmentInput = z.infer<typeof adjustmentSchema>;
 
+export const walkoverSchema = z.object({
+  winner: z.enum(['HOME', 'AWAY']),
+  goals: z.int().min(1).max(10).default(3),
+});
+
+export type WalkoverInput = z.infer<typeof walkoverSchema>;
+
 export type MatchEventInput = z.infer<typeof matchEventSchema>;
 export type ResultInput = z.infer<typeof resultSchema>;
