@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ResultForm } from '@/components/admin/ResultForm';
 import { ScheduleForm } from '@/components/admin/ScheduleForm';
+import { WalkoverForm } from '@/components/admin/WalkoverForm';
 import { formatKickoff, toLocalInput } from '@/lib/domain/time';
 import { suspendedFor } from '@/lib/domain/discipline';
 import { prisma } from '@/lib/server/db';
@@ -69,6 +70,20 @@ export default async function AdminMatchPage({ params }: Props) {
               type: e.type,
               minute: e.minute,
             }))}
+          />
+        </section>
+      )}
+
+      {match.status !== 'CANCELLED' && (
+        <section className="card">
+          <h2>Walkover</h2>
+          {match.walkover && (
+            <p className="alert warning">This result was awarded as a walkover.</p>
+          )}
+          <WalkoverForm
+            matchId={match.id}
+            homeName={match.homeTeam.name}
+            awayName={match.awayTeam.name}
           />
         </section>
       )}
