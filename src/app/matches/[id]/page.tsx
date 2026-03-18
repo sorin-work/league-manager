@@ -70,13 +70,14 @@ export default async function MatchPage({ params }: Props) {
           <strong>Kick-off:</strong> {formatKickoff(match.kickoffAt, season.timezone)}
           {match.status === 'POSTPONED' && <span className="badge warn"> Postponed</span>}
           {match.status === 'CANCELLED' && <span className="badge danger"> Cancelled</span>}
+          {match.walkover && <span className="badge"> Walkover</span>}
         </p>
         <p>
           <strong>Venue:</strong> {match.venue?.name ?? 'To be confirmed'}
         </p>
       </section>
 
-      {played && (
+      {played && !match.walkover && (
         <section className="card">
           <h2>Match events</h2>
           {match.events.length === 0 ? (

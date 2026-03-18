@@ -38,6 +38,7 @@ export function MatchList({ matches, timeZone, newestFirst = false, byes, emptyT
                 <span className="home">{m.homeTeam.name}</span>
                 <Link href={`/matches/${m.id}`} className="score">
                   {m.status === 'PLAYED' ? `${m.homeScore} – ${m.awayScore}` : 'v'}
+                  {m.walkover && <abbr title="Walkover"> w/o</abbr>}
                 </Link>
                 <span className="away">{m.awayTeam.name}</span>
                 <span className="venue muted small">{m.venue?.name ?? ''}</span>
