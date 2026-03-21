@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildCalendar, formatUtc } from '@/lib/domain/ics';
+import { buildCalendar, escapeText, foldLine, formatUtc } from '@/lib/domain/ics';
 
 const now = new Date('2025-08-01T12:00:00Z');
 
@@ -40,6 +40,36 @@ describe('buildCalendar', () => {
       now,
     );
     expect(ics).toContain('STATUS:CANCELLED');
+  });
+});
+
+describe('escapeText', () => {
+  it('escapes commas, semicolons, backslashes and newlines', () => {
+    expect(escapeText('Pitch 2; car park, gate B\\C\nBring boots')).toBe(
+      'Pitch 2\; car park\\, gate B\\\\C\\nBring boots',
+    );
+  });
+});
+
+describe('foldLine', () => {
+  it('leaves short lines alone', () => {
+    expect(foldLine('SUMMARY:Rovers v United')).toBe('SUMMARY:Rovers v United');
+  });
+
+  it('folds long lines at 75 octets with a leading space', () => {
+    const line = `DESCRIPTION:${'x'.repeat(150)}`;
+    const parts = foldLine(line).split('\r\n');
+    expect(parts[0]).toHaveLength(75);
+    expect(parts.slice(1).every((p) => p.startsWith(' ') && p.length <= 75)).toBe(true);
+    expect(parts.map((p, i) => (i === 0 ? p : p.slice(1))).join('')).toBe(line);
+  });
+
+  it('does not split multi-byte characters', () => {
+    const line = `SUMMARY:${'ş'.repeat(60)}`;
+    for (const part of foldLine(line).split('\r\n')) {
+      expect(Buffer.byteLength(part)).toBeLessThanOrEqual(75);
+      expect(part).not.toContain('�');
+    }
   });
 });
 
