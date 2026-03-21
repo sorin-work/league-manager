@@ -36,6 +36,12 @@ export default async function TeamPage({ params }: Props) {
       </div>
       <h1>{team.name}</h1>
       {team.homeVenue && <p className="muted">Home ground: {team.homeVenue.name}</p>}
+      <p className="small">
+        <a href={`/api/teams/${team.id}/calendar`} download={`${team.slug}.ics`}>
+          Add fixtures to your calendar
+        </a>{' '}
+        <span className="muted">(.ics, updates when fixtures change)</span>
+      </p>
 
       {row && (
         <div className="stats">
