@@ -1,4 +1,5 @@
 import type { Prisma } from '@prisma/client';
+import { offset, pageCount, type Page } from '@/lib/domain/pagination';
 import { zonedTimeToUtc } from '@/lib/domain/time';
 import type { MatchUpdate } from '@/lib/validation';
 import { prisma } from '../db';
@@ -36,6 +37,23 @@ export function listUpcomingMatches(limit = 8, now = new Date()) {
     orderBy: { kickoffAt: 'asc' },
     take: limit,
   });
+}
+
+/** Played matches of a division, most recent first, one page at a time. */
+export async function listDivisionResults(divisionId: string, requested: Page) {
+  await getDivision(divisionId);
+  const where = { divisionId, status: 'PLAYED' as const };
+  const total = await prisma.match.count({ where });
+  const totalPages = pageCount(total, requested.pageSize);
+  const page = Math.min(requested.page, totalPages);
+  const results = await prisma.match.findMany({
+    where,
+    include: matchInclude,
+    orderBy: [{ kickoffAt: 'desc' }, { round: 'desc' }, { id: 'asc' }],
+    skip: offset({ page, pageSize: requested.pageSize }),
+    take: requested.pageSize,
+  });
+  return { results, page, pageSize: requested.pageSize, total, totalPages };
 }
 
 export function listTeamMatches(teamId: string) {
