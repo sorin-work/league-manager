@@ -2,23 +2,25 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { MatchList } from '@/components/MatchList';
+import { Pagination } from '@/components/Pagination';
 import { ScorersTable } from '@/components/ScorersTable';
 import { StandingsTable } from '@/components/StandingsTable';
 import { SuspensionsTable } from '@/components/SuspensionsTable';
 import { Tabs } from '@/components/Tabs';
 import { activeSuspensions } from '@/lib/domain/discipline';
+import { parsePage } from '@/lib/domain/pagination';
 import { TIEBREAKER_LABELS, type Tiebreaker } from '@/lib/domain/standings';
 import { prisma } from '@/lib/server/db';
 import { listAdjustments } from '@/lib/server/services/adjustments';
 import { getDivisionSuspensions } from '@/lib/server/services/discipline';
 import { getDivisionBySlugs } from '@/lib/server/services/divisions';
-import { listDivisionMatches } from '@/lib/server/services/matches';
+import { listDivisionMatches, listDivisionResults } from '@/lib/server/services/matches';
 import { getDivisionScorers } from '@/lib/server/services/scorers';
 import { getDivisionStandings } from '@/lib/server/services/standings';
 
 type Props = {
   params: Promise<{ season: string; division: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; page?: string }>;
 };
 
 const TABS = [
@@ -37,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function DivisionPage({ params, searchParams }: Props) {
   const p = await params;
-  const { tab: tabParam } = await searchParams;
+  const { tab: tabParam, page: pageParam } = await searchParams;
   const tab = TABS.some((t) => t.id === tabParam) ? tabParam! : 'table';
   const division = await getDivisionBySlugs(p.season, p.division);
   if (!division) notFound();
@@ -50,13 +52,18 @@ export default async function DivisionPage({ params, searchParams }: Props) {
         where: { divisionId: division.id },
         select: { id: true, slug: true, name: true },
       }),
-      tab === 'fixtures' || tab === 'results'
-        ? listDivisionMatches(division.id)
-        : Promise.resolve([]),
+      tab === 'fixtures' ? listDivisionMatches(division.id) : Promise.resolve([]),
       tab === 'scorers' ? getDivisionScorers(division.id) : Promise.resolve([]),
       tab === 'suspensions' ? getDivisionSuspensions(division.id) : Promise.resolve([]),
       tab === 'table' ? listAdjustments(division.id) : Promise.resolve([]),
     ]);
+  const results =
+    tab === 'results'
+      ? await listDivisionResults(
+          division.id,
+          parsePage(new URLSearchParams({ page: pageParam ?? '1' })),
+        )
+      : null;
   const slugOf = new Map(teams.map((t) => [t.id, t.slug]));
   const base = `/seasons/${season.slug}/${division.slug}`;
 
@@ -97,11 +104,18 @@ export default async function DivisionPage({ params, searchParams }: Props) {
       {tab === 'results' && (
         <section className="card">
           <MatchList
-            matches={matches.filter((m) => m.status === 'PLAYED')}
+            matches={results?.results ?? []}
             timeZone={season.timezone}
             newestFirst
             emptyText="No results yet."
           />
+          {results && (
+            <Pagination
+              page={results.page}
+              totalPages={results.totalPages}
+              href={(n) => `${base}?tab=results&page=${n}`}
+            />
+          )}
         </section>
       )}
 
