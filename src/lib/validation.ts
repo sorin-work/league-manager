@@ -107,6 +107,12 @@ export const playerSchema = z.object({
 });
 export const playerUpdateSchema = playerSchema.partial();
 
+export const rosterImportSchema = z.object({
+  csv: z.string().min(1, 'The file is empty').max(100_000, 'The file is too large'),
+  /** Remove the current squad first. */
+  replace: z.boolean().default(false),
+});
+
 export type PlayerInput = z.infer<typeof playerSchema>;
 export type PlayerUpdate = z.infer<typeof playerUpdateSchema>;
 

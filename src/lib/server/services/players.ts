@@ -1,7 +1,8 @@
 import { Prisma } from '@prisma/client';
+import { parseRosterCsv } from '@/lib/domain/roster-csv';
 import type { PlayerInput, PlayerUpdate } from '@/lib/validation';
 import { prisma } from '../db';
-import { conflict, notFound } from '../http';
+import { badRequest, conflict, notFound } from '../http';
 import { getTeam } from './teams';
 
 function shirtTaken(err: unknown, shirtNumber: number | null | undefined) {
@@ -38,6 +39,37 @@ export async function updatePlayer(id: string, input: PlayerUpdate) {
   } catch (err) {
     throw shirtTaken(err, input.shirtNumber);
   }
+}
+
+/**
+ * Adds every player from a CSV file, or nothing at all when a row is invalid
+ * or a shirt number is already taken.
+ */
+export async function importRoster(teamId: string, csv: string, options: { replace: boolean }) {
+  const team = await getTeam(teamId);
+  const { players, errors } = parseRosterCsv(csv);
+  if (errors.length > 0) throw badRequest('Some rows could not be read', errors);
+  if (players.length === 0) throw badRequest('No players found in the file');
+
+  if (!options.replace) {
+    const taken = new Set(team.players.map((p) => p.shirtNumber).filter((n) => n !== null));
+    const clashes = players.filter((p) => p.shirtNumber !== null && taken.has(p.shirtNumber));
+    if (clashes.length > 0) {
+      throw conflict(
+        `Shirt numbers already taken: ${clashes.map((p) => p.shirtNumber).join(', ')}`,
+      );
+    }
+  }
+
+  await prisma.$transaction(async (tx) => {
+    if (options.replace) {
+      const used = await tx.matchEvent.count({ where: { player: { teamId } } });
+      if (used > 0) throw conflict('Players with goals or cards cannot be replaced');
+      await tx.player.deleteMany({ where: { teamId } });
+    }
+    await tx.player.createMany({ data: players.map((p) => ({ ...p, teamId })) });
+  });
+  return { imported: players.length };
 }
 
 export async function deletePlayer(id: string) {

@@ -11,6 +11,7 @@ import * as player from '@/app/api/players/[id]/route';
 import * as seasonDivisions from '@/app/api/seasons/[id]/divisions/route';
 import * as season from '@/app/api/seasons/[id]/route';
 import * as seasons from '@/app/api/seasons/route';
+import * as teamPlayersImport from '@/app/api/teams/[id]/players/import/route';
 import * as teamPlayers from '@/app/api/teams/[id]/players/route';
 import * as team from '@/app/api/teams/[id]/route';
 import * as venue from '@/app/api/venues/[id]/route';
@@ -32,6 +33,7 @@ const routes: [string, RouteModule][] = [
   ['/api/adjustments/:id', adjustment],
   ['/api/teams/:id', team],
   ['/api/teams/:id/players', teamPlayers],
+  ['/api/teams/:id/players/import', teamPlayersImport],
   ['/api/players/:id', player],
   ['/api/venues', venues],
   ['/api/venues/:id', venue],
