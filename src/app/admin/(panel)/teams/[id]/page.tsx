@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Roster } from '@/components/admin/Roster';
+import { RosterImport } from '@/components/admin/RosterImport';
 import { TeamForm } from '@/components/admin/TeamForm';
 import { getTeam } from '@/lib/server/services/teams';
 import { listVenues } from '@/lib/server/services/venues';
@@ -32,10 +33,16 @@ export default async function AdminTeamPage({ params }: Props) {
             }))}
           />
         </section>
-        <section className="card">
-          <h2>Details</h2>
-          <TeamForm team={team} venues={venues} />
-        </section>
+        <div>
+          <section className="card">
+            <h2>Details</h2>
+            <TeamForm team={team} venues={venues} />
+          </section>
+          <section className="card">
+            <h2>Import from CSV</h2>
+            <RosterImport teamId={team.id} />
+          </section>
+        </div>
       </div>
     </>
   );
