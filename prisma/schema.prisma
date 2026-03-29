@@ -166,6 +166,7 @@ model Match {
   updatedAt  DateTime     @updatedAt
   events     MatchEvent[]
 
+  @@unique([divisionId, round, homeTeamId])
   @@index([divisionId, round])
   @@index([status, kickoffAt])
   @@index([homeTeamId])

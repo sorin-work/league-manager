@@ -56,6 +56,17 @@ describe('POST /api/divisions/:id/fixtures', () => {
     expect(again.status).toBe(409);
   });
 
+  it('creates one set of fixtures when two requests arrive at once', async () => {
+    const { division } = await createLeague({ teams: 6 });
+    const responses = await Promise.all([
+      generateFor(division.id),
+      generateFor(division.id),
+      generateFor(division.id),
+    ]);
+    expect(responses.map((r) => r.status).sort()).toEqual([201, 409, 409]);
+    expect(await prisma.match.count({ where: { divisionId: division.id } })).toBe(15);
+  });
+
   it('needs at least two teams', async () => {
     const { division } = await createLeague({ teams: 1 });
     const res = await generateFor(division.id);

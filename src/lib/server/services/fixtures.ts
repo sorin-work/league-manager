@@ -29,7 +29,18 @@ export async function generateDivisionFixtures(divisionId: string, input: Genera
     timeZone: division.season.timezone,
   });
 
-  await prisma.match.createMany({ data: matches.map((m) => ({ ...m, divisionId })) });
+  const data = matches.map((m) => ({ ...m, divisionId }));
+  await prisma.$transaction(
+    async (tx) => {
+      // Serialise generation per division: a double click sends two requests
+      // that would otherwise both pass the "no fixtures yet" check above.
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${divisionId}))`;
+      const created = await tx.match.count({ where: { divisionId } });
+      if (created > 0) throw conflict('This division already has fixtures');
+      await tx.match.createMany({ data });
+    },
+    { timeout: 15_000 },
+  );
   return { rounds: rounds.length, matches: matches.length };
 }
 
