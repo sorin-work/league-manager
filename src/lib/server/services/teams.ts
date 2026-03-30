@@ -72,6 +72,40 @@ export async function updateTeam(id: string, input: TeamUpdate) {
   return prisma.team.update({ where: { id }, data: { ...input, slug } });
 }
 
+/**
+ * Copies the teams of one division (usually last season's) into another.
+ * Teams whose slug already exists in the target are skipped.
+ */
+export async function copyTeams(targetId: string, sourceId: string, includePlayers: boolean) {
+  if (targetId === sourceId) throw badRequest('Pick a different division to copy from');
+  await getDivision(targetId);
+  await getDivision(sourceId);
+  const [source, existing] = await Promise.all([
+    prisma.team.findMany({ where: { divisionId: sourceId }, include: { players: true } }),
+    takenSlugs(targetId),
+  ]);
+  const taken = new Set(existing);
+  const toCopy = source.filter((t) => !taken.has(t.slug));
+
+  await prisma.$transaction(
+    toCopy.map((t) =>
+      prisma.team.create({
+        data: {
+          divisionId: targetId,
+          name: t.name,
+          shortName: t.shortName,
+          slug: t.slug,
+          homeVenueId: t.homeVenueId,
+          players: includePlayers
+            ? { create: t.players.map((p) => ({ name: p.name, shirtNumber: p.shirtNumber })) }
+            : undefined,
+        },
+      }),
+    ),
+  );
+  return { copied: toCopy.length, skipped: source.length - toCopy.length };
+}
+
 export async function deleteTeam(id: string) {
   await getTeam(id);
   const fixtures = await prisma.match.count({

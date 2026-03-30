@@ -15,6 +15,7 @@ import { GET as listPlayers, POST as addPlayer } from '@/app/api/teams/[id]/play
 import { DELETE as deletePlayer, PATCH as updatePlayer } from '@/app/api/players/[id]/route';
 import { GET as listVenues, POST as createVenue } from '@/app/api/venues/route';
 import { DELETE as deleteVenue } from '@/app/api/venues/[id]/route';
+import { POST as copyTeams } from '@/app/api/divisions/[id]/copy-teams/route';
 import { prisma } from '@/lib/server/db';
 import { adminCookie, call, resetDb } from './helpers';
 
@@ -186,6 +187,60 @@ describe('teams', () => {
       body: { name: 'Sneaky' },
     });
     expect(res.status).toBe(401);
+  });
+});
+
+describe('copying teams', () => {
+  it('copies teams and squads, skipping ones that already exist', async () => {
+    const from = await division('Last Season');
+    const to = await division('This Season');
+    const rovers = (await team(from, 'Rovers', { shortName: 'ROV' })).body.team.id;
+    await team(from, 'United');
+    await team(to, 'United');
+    await call(addPlayer, {
+      method: 'POST',
+      params: { id: rovers },
+      body: { name: 'Keeper', shirtNumber: 1 },
+      cookie,
+    });
+    const res = await call(copyTeams, {
+      method: 'POST',
+      params: { id: to },
+      body: { fromDivisionId: from },
+      cookie,
+    });
+    expect(res.body).toEqual({ copied: 1, skipped: 1 });
+    const copied = await prisma.team.findFirstOrThrow({
+      where: { divisionId: to, slug: 'rovers' },
+      include: { players: true },
+    });
+    expect(copied.shortName).toBe('ROV');
+    expect(copied.players.map((p) => p.name)).toEqual(['Keeper']);
+  });
+
+  it('can leave the squads behind', async () => {
+    const from = await division('A');
+    const to = await division('B');
+    const id = (await team(from, 'Rovers')).body.team.id;
+    await call(addPlayer, { method: 'POST', params: { id }, body: { name: 'X' }, cookie });
+    await call(copyTeams, {
+      method: 'POST',
+      params: { id: to },
+      body: { fromDivisionId: from, includePlayers: false },
+      cookie,
+    });
+    expect(await prisma.player.count({ where: { team: { divisionId: to } } })).toBe(0);
+  });
+
+  it('refuses to copy a division onto itself', async () => {
+    const d = await division();
+    const res = await call(copyTeams, {
+      method: 'POST',
+      params: { id: d },
+      body: { fromDivisionId: d },
+      cookie,
+    });
+    expect(res.status).toBe(400);
   });
 });
 

@@ -98,6 +98,11 @@ export const teamSchema = z.object({
 });
 export const teamUpdateSchema = teamSchema.partial();
 
+export const copyTeamsSchema = z.object({
+  fromDivisionId: z.string().min(1),
+  includePlayers: z.boolean().default(true),
+});
+
 export type TeamInput = z.infer<typeof teamSchema>;
 export type TeamUpdate = z.infer<typeof teamUpdateSchema>;
 

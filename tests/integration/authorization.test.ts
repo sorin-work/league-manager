@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import * as adjustment from '@/app/api/adjustments/[id]/route';
 import * as divisionAdjustments from '@/app/api/divisions/[id]/adjustments/route';
+import * as divisionCopyTeams from '@/app/api/divisions/[id]/copy-teams/route';
 import * as divisionFixtures from '@/app/api/divisions/[id]/fixtures/route';
 import * as division from '@/app/api/divisions/[id]/route';
 import * as divisionTeams from '@/app/api/divisions/[id]/teams/route';
@@ -30,6 +31,7 @@ const routes: [string, RouteModule][] = [
   ['/api/divisions/:id/teams', divisionTeams],
   ['/api/divisions/:id/fixtures', divisionFixtures],
   ['/api/divisions/:id/adjustments', divisionAdjustments],
+  ['/api/divisions/:id/copy-teams', divisionCopyTeams],
   ['/api/adjustments/:id', adjustment],
   ['/api/teams/:id', team],
   ['/api/teams/:id/players', teamPlayers],
