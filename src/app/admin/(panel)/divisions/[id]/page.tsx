@@ -2,11 +2,13 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AdjustmentsPanel } from '@/components/admin/AdjustmentsPanel';
 import { AdminMatchTable } from '@/components/admin/AdminMatchTable';
+import { CopyTeamsForm } from '@/components/admin/CopyTeamsForm';
 import { DeleteButton } from '@/components/admin/DeleteButton';
 import { DivisionSettingsForm } from '@/components/admin/DivisionSettingsForm';
 import { GenerateFixturesForm } from '@/components/admin/GenerateFixturesForm';
 import { NewTeamForm } from '@/components/admin/NewTeamForm';
 import { plural } from '@/lib/format';
+import { prisma } from '@/lib/server/db';
 import { listAdjustments } from '@/lib/server/services/adjustments';
 import { getDivision } from '@/lib/server/services/divisions';
 import { listDivisionMatches } from '@/lib/server/services/matches';
@@ -18,11 +20,16 @@ type Props = { params: Promise<{ id: string }> };
 export default async function AdminDivisionPage({ params }: Props) {
   const division = await getDivision((await params).id).catch(() => null);
   if (!division) notFound();
-  const [teams, venues, matches, adjustments] = await Promise.all([
+  const [teams, venues, matches, adjustments, otherDivisions] = await Promise.all([
     listTeams(division.id),
     listVenues(),
     listDivisionMatches(division.id),
     listAdjustments(division.id),
+    prisma.division.findMany({
+      where: { id: { not: division.id } },
+      include: { season: { select: { name: true, startDate: true } } },
+      orderBy: [{ season: { startDate: 'desc' } }, { sortOrder: 'asc' }],
+    }),
   ]);
   const seasonStart = division.season.startDate.toISOString().slice(0, 10);
 
@@ -59,6 +66,18 @@ export default async function AdminDivisionPage({ params }: Props) {
         )}
         <h3>Add a team</h3>
         <NewTeamForm divisionId={division.id} venues={venues} />
+        {otherDivisions.length > 0 && (
+          <>
+            <h3>Copy from another division</h3>
+            <CopyTeamsForm
+              divisionId={division.id}
+              sources={otherDivisions.map((d) => ({
+                id: d.id,
+                label: `${d.season.name} – ${d.name}`,
+              }))}
+            />
+          </>
+        )}
       </section>
 
       <section className="card">
