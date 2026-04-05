@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { MatchList } from '@/components/MatchList';
+import { POSITION_LABELS, POSITION_SHORT } from '@/lib/positions';
 import { listTeamMatches } from '@/lib/server/services/matches';
 import { getDivisionStandings } from '@/lib/server/services/standings';
 import { getTeamBySlugs } from '@/lib/server/services/teams';
@@ -97,7 +98,12 @@ export default async function TeamPage({ params }: Props) {
               {team.players.map((pl) => (
                 <li key={pl.id}>
                   <span className="shirt">{pl.shirtNumber ?? ''}</span>
-                  <span>{pl.name}</span>
+                  <span className="grow">{pl.name}</span>
+                  {pl.position && (
+                    <span className="muted small" title={POSITION_LABELS[pl.position]}>
+                      {POSITION_SHORT[pl.position]}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>

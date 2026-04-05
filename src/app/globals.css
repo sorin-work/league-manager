@@ -535,6 +535,11 @@ legend {
   flex: none;
 }
 
+.position-input {
+  width: 9rem;
+  flex: none;
+}
+
 .grow {
   flex: 1;
 }

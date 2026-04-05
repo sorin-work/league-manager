@@ -3,14 +3,30 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { api, ApiError } from '@/lib/client/api';
+import { POSITION_LABELS, POSITION_SHORT, POSITIONS, type Position } from '@/lib/positions';
 
 interface Player {
   id: string;
   name: string;
   shirtNumber: number | null;
+  position: Position | null;
 }
 
 const shirt = (value: FormDataEntryValue | null) => (value ? Number(value) : null);
+const position = (value: FormDataEntryValue | null) => (value ? String(value) : null);
+
+function PositionSelect({ defaultValue }: { defaultValue?: Position | null }) {
+  return (
+    <select name="position" defaultValue={defaultValue ?? ''} className="position-input">
+      <option value="">Position</option>
+      {POSITIONS.map((p) => (
+        <option key={p} value={p}>
+          {POSITION_LABELS[p]}
+        </option>
+      ))}
+    </select>
+  );
+}
 
 function PlayerRow({ player }: { player: Player }) {
   const router = useRouter();
@@ -23,7 +39,11 @@ function PlayerRow({ player }: { player: Player }) {
     try {
       await api(`/api/players/${player.id}`, {
         method: 'PATCH',
-        body: { name: form.get('name'), shirtNumber: shirt(form.get('shirtNumber')) },
+        body: {
+          name: form.get('name'),
+          shirtNumber: shirt(form.get('shirtNumber')),
+          position: position(form.get('position')),
+        },
       });
       setEditing(false);
       setError(null);
@@ -56,6 +76,7 @@ function PlayerRow({ player }: { player: Player }) {
             className="shirt-input"
           />
           <input name="name" defaultValue={player.name} required />
+          <PositionSelect defaultValue={player.position} />
           <button type="submit" className="button small">
             Save
           </button>
@@ -75,7 +96,10 @@ function PlayerRow({ player }: { player: Player }) {
   return (
     <li>
       <span className="shirt">{player.shirtNumber ?? ''}</span>
-      <span className="grow">{player.name}</span>
+      <span className="grow">
+        {player.name}{' '}
+        {player.position && <span className="muted small">{POSITION_SHORT[player.position]}</span>}
+      </span>
       <button type="button" className="button secondary small" onClick={() => setEditing(true)}>
         Edit
       </button>
@@ -98,7 +122,11 @@ export function Roster({ teamId, players }: { teamId: string; players: Player[] 
     try {
       await api(`/api/teams/${teamId}/players`, {
         method: 'POST',
-        body: { name: form.get('name'), shirtNumber: shirt(form.get('shirtNumber')) },
+        body: {
+          name: form.get('name'),
+          shirtNumber: shirt(form.get('shirtNumber')),
+          position: position(form.get('position')),
+        },
       });
       el.reset();
       setError(null);
@@ -130,6 +158,7 @@ export function Roster({ teamId, players }: { teamId: string; players: Player[] 
           className="shirt-input"
         />
         <input name="name" placeholder="Player name" required />
+        <PositionSelect />
         <button type="submit" className="button small">
           Add
         </button>

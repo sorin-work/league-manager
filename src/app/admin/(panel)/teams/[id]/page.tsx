@@ -30,6 +30,7 @@ export default async function AdminTeamPage({ params }: Props) {
               id: p.id,
               name: p.name,
               shirtNumber: p.shirtNumber,
+              position: p.position,
             }))}
           />
         </section>
