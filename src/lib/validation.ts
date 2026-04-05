@@ -109,6 +109,7 @@ export type TeamUpdate = z.infer<typeof teamUpdateSchema>;
 export const playerSchema = z.object({
   name,
   shirtNumber: z.int('Must be a whole number').min(1).max(99).nullable().optional(),
+  position: z.enum(['GOALKEEPER', 'DEFENDER', 'MIDFIELDER', 'FORWARD']).nullable().optional(),
 });
 export const playerUpdateSchema = playerSchema.partial();
 

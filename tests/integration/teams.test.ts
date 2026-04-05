@@ -292,6 +292,23 @@ describe('rosters', () => {
     expect(res.status).toBe(201);
   });
 
+  it('stores a position and rejects unknown ones', async () => {
+    const ok = await call(addPlayer, {
+      method: 'POST',
+      params: { id: teamId },
+      body: { name: 'Keeper', position: 'GOALKEEPER' },
+      cookie,
+    });
+    expect(ok.body.player.position).toBe('GOALKEEPER');
+    const bad = await call(addPlayer, {
+      method: 'POST',
+      params: { id: teamId },
+      body: { name: 'Sweeper', position: 'LIBERO' },
+      cookie,
+    });
+    expect(bad.status).toBe(400);
+  });
+
   it('rejects shirt numbers out of range', async () => {
     const res = await call(addPlayer, {
       method: 'POST',

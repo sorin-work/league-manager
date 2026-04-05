@@ -35,6 +35,13 @@ enum SeasonStatus {
   FINISHED
 }
 
+enum Position {
+  GOALKEEPER
+  DEFENDER
+  MIDFIELDER
+  FORWARD
+}
+
 enum FixtureFormat {
   SINGLE
   DOUBLE
@@ -122,6 +129,7 @@ model Player {
   team        Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
   name        String
   shirtNumber Int?
+  position    Position?
   createdAt   DateTime     @default(now())
   events      MatchEvent[]
 
