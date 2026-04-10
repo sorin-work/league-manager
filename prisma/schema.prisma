@@ -97,6 +97,8 @@ model Team {
   division    Division           @relation(fields: [divisionId], references: [id], onDelete: Cascade)
   name        String
   shortName   String?
+  /// Kit colour as #rrggbb
+  colour      String?
   slug        String
   homeVenueId String?
   homeVenue   Venue?             @relation(fields: [homeVenueId], references: [id], onDelete: SetNull)

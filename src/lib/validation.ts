@@ -95,6 +95,12 @@ export const teamSchema = z.object({
   name,
   shortName: optionalText(5).transform((v) => (v ? v.toUpperCase() : v)),
   homeVenueId: z.string().min(1).nullable().optional(),
+  colour: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/, 'Use a colour like #1f7a4d')
+    .transform((v) => v.toLowerCase())
+    .nullable()
+    .optional(),
 });
 export const teamUpdateSchema = teamSchema.partial();
 

@@ -145,6 +145,12 @@ describe('teams', () => {
     expect(b.body.team.slug).toBe('united');
   });
 
+  it('stores a kit colour in lower case and rejects other formats', async () => {
+    const d = await division();
+    expect((await team(d, 'Reds', { colour: '#D92D20' })).body.team.colour).toBe('#d92d20');
+    expect((await team(d, 'Blues', { colour: 'blue' })).status).toBe(400);
+  });
+
   it('rejects an unknown home venue', async () => {
     const res = await team(await division(), 'United', { homeVenueId: 'nope' });
     expect(res.status).toBe(400);
