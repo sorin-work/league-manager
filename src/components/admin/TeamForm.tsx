@@ -5,7 +5,13 @@ import { useState } from 'react';
 import { api, ApiError } from '@/lib/client/api';
 
 interface Props {
-  team: { id: string; name: string; shortName: string | null; homeVenueId: string | null };
+  team: {
+    id: string;
+    name: string;
+    shortName: string | null;
+    homeVenueId: string | null;
+    colour: string | null;
+  };
   venues: { id: string; name: string }[];
 }
 
@@ -25,6 +31,7 @@ export function TeamForm({ team, venues }: Props) {
           name: form.get('name'),
           shortName: form.get('shortName'),
           homeVenueId: form.get('homeVenueId') || null,
+          colour: form.get('colour') || null,
         },
       });
       setMessage({ ok: true, text: 'Saved.' });
@@ -46,6 +53,10 @@ export function TeamForm({ team, venues }: Props) {
       <label>
         Short name
         <input name="shortName" defaultValue={team.shortName ?? ''} maxLength={5} />
+      </label>
+      <label>
+        Kit colour
+        <input name="colour" type="color" defaultValue={team.colour ?? '#1f7a4d'} />
       </label>
       <label>
         Home ground

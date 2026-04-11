@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { MatchList } from '@/components/MatchList';
+import { TeamBadge } from '@/components/TeamBadge';
 import { POSITION_LABELS, POSITION_SHORT } from '@/lib/positions';
 import { listTeamMatches } from '@/lib/server/services/matches';
 import { getDivisionStandings } from '@/lib/server/services/standings';
@@ -35,7 +36,9 @@ export default async function TeamPage({ params }: Props) {
         <Link href={`/seasons/${season.slug}`}>{season.name}</Link> /{' '}
         <Link href={divisionHref}>{division.name}</Link>
       </div>
-      <h1>{team.name}</h1>
+      <h1>
+        <TeamBadge colour={team.colour} /> {team.name}
+      </h1>
       {team.homeVenue && <p className="muted">Home ground: {team.homeVenue.name}</p>}
       <p className="small">
         <a href={`/api/teams/${team.id}/calendar`} download={`${team.slug}.ics`}>

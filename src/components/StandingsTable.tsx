@@ -1,10 +1,12 @@
 import Link from 'next/link';
+import { TeamBadge } from './TeamBadge';
 import type { FormResult, StandingRow } from '@/lib/domain/standings';
 
 const FORM_TITLES: Record<FormResult, string> = { W: 'Won', D: 'Drawn', L: 'Lost' };
 
 interface Props {
   rows: StandingRow[];
+  colours?: Record<string, string | null>;
   teamHref: (teamId: string) => string;
   promotionPlaces?: number;
   relegationPlaces?: number;
@@ -12,6 +14,7 @@ interface Props {
 
 export function StandingsTable({
   rows,
+  colours = {},
   teamHref,
   promotionPlaces = 0,
   relegationPlaces = 0,
@@ -61,6 +64,7 @@ export function StandingsTable({
             <tr key={row.teamId} className={zone(row.position)}>
               <td className="num">{row.position}</td>
               <td className="team">
+                <TeamBadge colour={colours[row.teamId]} />
                 <Link href={teamHref(row.teamId)}>{row.name}</Link>
               </td>
               <td className="num">{row.played}</td>

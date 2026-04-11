@@ -50,7 +50,7 @@ export default async function DivisionPage({ params, searchParams }: Props) {
       getDivisionStandings(division.id),
       prisma.team.findMany({
         where: { divisionId: division.id },
-        select: { id: true, slug: true, name: true },
+        select: { id: true, slug: true, name: true, colour: true },
       }),
       tab === 'fixtures' ? listDivisionMatches(division.id) : Promise.resolve([]),
       tab === 'scorers' ? getDivisionScorers(division.id) : Promise.resolve([]),
@@ -138,6 +138,7 @@ export default async function DivisionPage({ params, searchParams }: Props) {
         <section className="card">
           <StandingsTable
             rows={standings}
+            colours={Object.fromEntries(teams.map((t) => [t.id, t.colour]))}
             teamHref={(id) => `${base}/teams/${slugOf.get(id)}`}
             promotionPlaces={division.promotionPlaces}
             relegationPlaces={division.relegationPlaces}
