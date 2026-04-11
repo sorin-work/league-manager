@@ -44,6 +44,20 @@ describe('POST /api/divisions/:id/fixtures', () => {
     expect(first.kickoffAt?.toISOString()).toBe('2025-09-06T13:00:00.000Z');
   });
 
+  it('repeats a random draw from its seed', async () => {
+    const draw = async () => {
+      const { division } = await createLeague({ teams: 6 });
+      const res = await generateFor(division.id, { shuffle: true, seed: 1234 });
+      expect(res.body.seed).toBe(1234);
+      const first = await prisma.match.findMany({
+        where: { divisionId: division.id, round: 1 },
+        include: { homeTeam: true, awayTeam: true },
+      });
+      return first.map((m) => `${m.homeTeam.name}-${m.awayTeam.name}`).sort();
+    };
+    expect(await draw()).toEqual(await draw());
+  });
+
   it('handles an odd number of teams', async () => {
     const { division } = await createLeague({ teams: 5 });
     expect((await generateFor(division.id)).body).toEqual({ rounds: 5, matches: 10 });

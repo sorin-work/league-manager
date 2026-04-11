@@ -1,4 +1,4 @@
-import { generateFixtures } from '@/lib/domain/fixtures';
+import { generateFixtures, shuffle } from '@/lib/domain/fixtures';
 import { scheduleFixtures } from '@/lib/domain/schedule';
 import type { GenerateFixturesInput } from '@/lib/validation';
 import { prisma } from '../db';
@@ -19,8 +19,10 @@ export async function generateDivisionFixtures(divisionId: string, input: Genera
     if (found !== new Set(input.venueIds).size) throw badRequest('Unknown venue');
   }
 
+  const seed = input.seed ?? Math.floor(Math.random() * 2 ** 31);
+  const order = teams.map((t) => t.id);
   const rounds = generateFixtures(
-    teams.map((t) => t.id),
+    input.shuffle ? shuffle(order, seed) : order,
     input.format ?? division.format,
   );
   const matches = scheduleFixtures(rounds, {
@@ -41,7 +43,11 @@ export async function generateDivisionFixtures(divisionId: string, input: Genera
     },
     { timeout: 15_000 },
   );
-  return { rounds: rounds.length, matches: matches.length };
+  return {
+    rounds: rounds.length,
+    matches: matches.length,
+    ...(input.shuffle ? { seed } : {}),
+  };
 }
 
 /** Removes all fixtures of a division, as long as no result has been entered. */

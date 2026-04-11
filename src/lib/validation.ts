@@ -146,6 +146,13 @@ export const generateFixturesSchema = z.object({
   venueIds: z.array(z.string().min(1)).default([]),
   skipDates: z.array(isoDate).default([]),
   format: z.enum(['SINGLE', 'DOUBLE']).optional(),
+  /** Draw the order randomly instead of alphabetically; pass a seed to repeat a draw. */
+  shuffle: z.boolean().default(false),
+  seed: z
+    .int()
+    .min(0)
+    .max(2 ** 31)
+    .optional(),
 });
 
 export type GenerateFixturesInput = z.infer<typeof generateFixturesSchema>;
