@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FixtureError, generateFixtures, roundRobin } from '@/lib/domain/fixtures';
+import { FixtureError, generateFixtures, roundRobin, shuffle } from '@/lib/domain/fixtures';
 
 const teams = (n: number) => Array.from({ length: n }, (_, i) => `t${i + 1}`);
 
@@ -108,6 +108,26 @@ describe('home and away balance', () => {
     const rounds = roundRobin(teams(6));
     const away = rounds.flatMap((r) => r.matches).filter((m) => m.away === 't1');
     expect(away.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('shuffle', () => {
+  it('keeps every item', () => {
+    expect(shuffle(teams(10), 42).sort()).toEqual(teams(10).sort());
+  });
+
+  it('gives the same order for the same seed', () => {
+    expect(shuffle(teams(10), 7)).toEqual(shuffle(teams(10), 7));
+  });
+
+  it('gives a different order for another seed', () => {
+    expect(shuffle(teams(10), 7)).not.toEqual(shuffle(teams(10), 8));
+  });
+
+  it('does not change its input', () => {
+    const input = teams(5);
+    shuffle(input, 1);
+    expect(input).toEqual(teams(5));
   });
 });
 
