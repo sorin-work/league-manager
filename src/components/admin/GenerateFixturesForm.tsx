@@ -37,6 +37,7 @@ export function GenerateFixturesForm({ divisionId, format, defaultStart, venues 
           venueIds: form.getAll('venueIds'),
           skipDates: list(form.get('skipDates')),
           format: form.get('format'),
+          shuffle: form.get('shuffle') === 'on',
         },
       });
       router.refresh();
@@ -77,6 +78,10 @@ export function GenerateFixturesForm({ divisionId, format, defaultStart, venues 
       <label>
         Skip dates <span className="hint">optional, comma separated YYYY-MM-DD</span>
         <input name="skipDates" placeholder="2025-12-28, 2026-01-04" />
+      </label>
+      <label className="checkbox">
+        <input type="checkbox" name="shuffle" /> Random draw{' '}
+        <span className="hint">(otherwise teams are paired in alphabetical order)</span>
       </label>
       {venues.length > 0 && (
         <fieldset>
