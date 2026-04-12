@@ -1,8 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { api, ApiError } from '@/lib/client/api';
+import { api } from '@/lib/client/api';
+import { useSubmit } from '@/lib/client/useSubmit';
 
 interface Props {
   divisionId: string;
@@ -10,33 +9,16 @@ interface Props {
 }
 
 export function NewTeamForm({ divisionId, venues }: Props) {
-  const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
-
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const el = e.currentTarget;
-    const form = new FormData(el);
-    setPending(true);
-    setError(null);
-    try {
-      await api(`/api/divisions/${divisionId}/teams`, {
-        method: 'POST',
-        body: {
-          name: form.get('name'),
-          shortName: form.get('shortName'),
-          homeVenueId: form.get('homeVenueId') || null,
-        },
-      });
-      el.reset();
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Something went wrong');
-    } finally {
-      setPending(false);
-    }
-  }
+  const { onSubmit, error, pending } = useSubmit((form) =>
+    api(`/api/divisions/${divisionId}/teams`, {
+      method: 'POST',
+      body: {
+        name: form.get('name'),
+        shortName: form.get('shortName'),
+        homeVenueId: form.get('homeVenueId') || null,
+      },
+    }),
+  );
 
   return (
     <form onSubmit={onSubmit} className="form">
