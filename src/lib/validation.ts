@@ -63,6 +63,19 @@ export const seasonUpdateSchema = seasonFields.partial();
 export type SeasonInput = z.infer<typeof seasonSchema>;
 export type SeasonUpdate = z.infer<typeof seasonUpdateSchema>;
 
+const newPassword = z.string().min(10, 'Use at least 10 characters').max(200);
+
+export const passwordChangeSchema = z.object({
+  currentPassword: z.string().min(1, 'Enter your current password'),
+  newPassword,
+});
+
+export const adminSchema = z.object({
+  email: z.email('Enter a valid email address'),
+  name: z.string().trim().min(1, 'Required').max(80),
+  password: newPassword,
+});
+
 const divisionFields = z.object({
   name,
   format: z.enum(['SINGLE', 'DOUBLE']),
