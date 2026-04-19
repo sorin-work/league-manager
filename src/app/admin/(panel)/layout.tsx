@@ -14,7 +14,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/admin/venues">Venues</Link>
         </nav>
         <div className="admin-user">
-          <span className="muted small">{admin.name}</span>
+          <Link href="/admin/account" className="small">
+            {admin.name}
+          </Link>
           <SignOutButton />
         </div>
       </div>
