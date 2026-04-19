@@ -1,5 +1,8 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import * as adjustment from '@/app/api/adjustments/[id]/route';
+import * as admin from '@/app/api/admins/[id]/route';
+import * as admins from '@/app/api/admins/route';
+import * as password from '@/app/api/auth/password/route';
 import * as divisionAdjustments from '@/app/api/divisions/[id]/adjustments/route';
 import * as divisionCopyTeams from '@/app/api/divisions/[id]/copy-teams/route';
 import * as divisionFixtures from '@/app/api/divisions/[id]/fixtures/route';
@@ -25,6 +28,9 @@ type RouteModule = Partial<Record<'POST' | 'PUT' | 'PATCH' | 'DELETE', Handler>>
 
 const routes: [string, RouteModule][] = [
   ['/api/seasons', seasons],
+  ['/api/admins', admins],
+  ['/api/admins/:id', admin],
+  ['/api/auth/password', password],
   ['/api/seasons/:id', season],
   ['/api/seasons/:id/divisions', seasonDivisions],
   ['/api/divisions/:id', division],
