@@ -1,5 +1,18 @@
 const URL = /\bhttps?:\/\/[^\s<]+[^\s<.,;:!?)]/g;
 
+const ENTITIES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+export function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, (ch) => ENTITIES[ch]);
+}
+
+/** Expects already escaped text, so a url cannot break out of the attribute. */
 function linkify(text: string): string {
   return text.replace(
     URL,
@@ -16,6 +29,6 @@ export function notesToHtml(notes: string | null | undefined): string {
   return notes
     .trim()
     .split(/\n\s*\n/)
-    .map((paragraph) => `<p>${linkify(paragraph.trim()).replace(/\n/g, '<br>')}</p>`)
+    .map((paragraph) => `<p>${linkify(escapeHtml(paragraph.trim())).replace(/\n/g, '<br>')}</p>`)
     .join('');
 }
