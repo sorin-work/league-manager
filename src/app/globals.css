@@ -12,6 +12,29 @@
   --warning-soft: #fff6e0;
   --radius: 8px;
   --shadow: 0 1px 2px rgb(16 24 40 / 6%);
+  --input-bg: #ffffff;
+  --row-hover: #f9fbfc;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #11161c;
+    --surface: #1a2129;
+    --text: #e4e9ee;
+    --muted: #94a1b0;
+    --border: #2c3641;
+    --accent: #3fb07a;
+    --accent-strong: #145c39;
+    --accent-soft: #173a29;
+    --danger: #f97066;
+    --danger-soft: #3d1d1b;
+    --warning-soft: #3a2f12;
+    --shadow: none;
+    --input-bg: #11161c;
+    --row-hover: #202933;
+    color-scheme: dark;
+  }
 }
 
 *,
@@ -203,7 +226,7 @@ th.num {
 }
 
 tbody tr:hover {
-  background: #f9fbfc;
+  background: var(--row-hover);
 }
 
 .standings td.team {
@@ -415,7 +438,7 @@ textarea {
   padding: 0.45rem 0.6rem;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--input-bg);
   color: var(--text);
   width: 100%;
 }
@@ -450,12 +473,12 @@ textarea:focus {
 }
 
 .button.secondary {
-  background: #fff;
+  background: var(--surface);
   color: var(--accent-strong);
 }
 
 .button.danger {
-  background: #fff;
+  background: var(--surface);
   border-color: var(--danger);
   color: var(--danger);
 }
