@@ -741,6 +741,37 @@ legend {
   }
 }
 
+@media print {
+  .site-header,
+  .site-footer,
+  .tabs,
+  .pagination,
+  .admin-bar,
+  .breadcrumbs {
+    display: none;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  .card {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  .form-pill {
+    color: #fff;
+    print-color-adjust: exact;
+  }
+}
+
 /* tabs */
 
 .tabs {
