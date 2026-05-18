@@ -179,6 +179,8 @@ export const matchUpdateSchema = z.object({
     .optional(),
   venueId: z.string().min(1).nullable().optional(),
   status: z.enum(['SCHEDULED', 'POSTPONED', 'CANCELLED']).optional(),
+  referee: optionalText(80),
+  notes: optionalText(500),
 });
 
 export type MatchUpdate = z.infer<typeof matchUpdateSchema>;

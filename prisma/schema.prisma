@@ -172,6 +172,9 @@ model Match {
   awayScore  Int?
   /// Result awarded without the match being played (no-show, ineligible team)
   walkover   Boolean      @default(false)
+  referee    String?
+  /// Shown on the match page, e.g. "Played on pitch 3"
+  notes      String?
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
   events     MatchEvent[]

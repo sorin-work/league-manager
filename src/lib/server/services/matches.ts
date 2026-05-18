@@ -104,7 +104,13 @@ export async function updateMatchSchedule(id: string, input: MatchUpdate) {
 
   return prisma.match.update({
     where: { id },
-    data: { kickoffAt, venueId: input.venueId, status: input.status },
+    data: {
+      kickoffAt,
+      venueId: input.venueId,
+      status: input.status,
+      referee: input.referee,
+      notes: input.notes,
+    },
     include: matchInclude,
   });
 }

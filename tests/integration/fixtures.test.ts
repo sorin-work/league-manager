@@ -201,6 +201,30 @@ describe('matches', () => {
     expect(res.body.match).toMatchObject({ status: 'POSTPONED', kickoffAt: null });
   });
 
+  it('stores the referee and notes, and clears them again', async () => {
+    const { division } = await createLeague();
+    await generateFor(division.id);
+    const match = await prisma.match.findFirstOrThrow();
+    const set = await call(updateMatch, {
+      method: 'PATCH',
+      params: { id: match.id },
+      body: { referee: '  Pat Whistle ', notes: 'Pitch 3, changing rooms B' },
+      cookie,
+    });
+    expect(set.body.match).toMatchObject({
+      referee: 'Pat Whistle',
+      notes: 'Pitch 3, changing rooms B',
+    });
+    const cleared = await call(updateMatch, {
+      method: 'PATCH',
+      params: { id: match.id },
+      body: { referee: '' },
+      cookie,
+    });
+    expect(cleared.body.match.referee).toBeNull();
+    expect(cleared.body.match.notes).toBe('Pitch 3, changing rooms B');
+  });
+
   it('needs an admin to reschedule', async () => {
     const { division } = await createLeague();
     await generateFor(division.id);
