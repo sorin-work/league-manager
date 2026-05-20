@@ -573,6 +573,10 @@ legend {
   flex: none;
 }
 
+.pre-line {
+  white-space: pre-line;
+}
+
 .grow {
   flex: 1;
 }

@@ -75,6 +75,12 @@ export default async function MatchPage({ params }: Props) {
         <p>
           <strong>Venue:</strong> {match.venue?.name ?? 'To be confirmed'}
         </p>
+        {match.referee && (
+          <p>
+            <strong>Referee:</strong> {match.referee}
+          </p>
+        )}
+        {match.notes && <p className="pre-line muted">{match.notes}</p>}
       </section>
 
       {played && !match.walkover && (

@@ -9,11 +9,14 @@ interface Props {
   kickoffLocal: string;
   venueId: string | null;
   status: string;
+  referee: string | null;
+  notes: string | null;
   timeZone: string;
   venues: { id: string; name: string }[];
 }
 
-export function ScheduleForm({ matchId, kickoffLocal, venueId, status, timeZone, venues }: Props) {
+export function ScheduleForm(props: Props) {
+  const { matchId, kickoffLocal, venueId, status, timeZone, venues } = props;
   const router = useRouter();
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, setPending] = useState(false);
@@ -30,6 +33,8 @@ export function ScheduleForm({ matchId, kickoffLocal, venueId, status, timeZone,
           kickoffAt: kickoff === '' ? null : kickoff,
           venueId: form.get('venueId') || null,
           status: form.get('status') ?? undefined,
+          referee: form.get('referee'),
+          notes: form.get('notes'),
         },
       });
       setMessage({ ok: true, text: 'Saved.' });
@@ -58,6 +63,14 @@ export function ScheduleForm({ matchId, kickoffLocal, venueId, status, timeZone,
             </option>
           ))}
         </select>
+      </label>
+      <label>
+        Referee
+        <input name="referee" defaultValue={props.referee ?? ''} maxLength={80} />
+      </label>
+      <label>
+        Notes <span className="hint">shown on the match page</span>
+        <textarea name="notes" rows={2} defaultValue={props.notes ?? ''} maxLength={500} />
       </label>
       {status !== 'PLAYED' && (
         <label>

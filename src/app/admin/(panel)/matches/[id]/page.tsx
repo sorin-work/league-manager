@@ -49,6 +49,8 @@ export default async function AdminMatchPage({ params }: Props) {
           kickoffLocal={match.kickoffAt ? toLocalInput(match.kickoffAt, tz) : ''}
           venueId={match.venueId}
           status={match.status}
+          referee={match.referee}
+          notes={match.notes}
           timeZone={tz}
           venues={venues}
         />
