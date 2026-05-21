@@ -28,6 +28,12 @@ describe('pageCount and offset', () => {
     expect(pageCount(30, 10)).toBe(3);
   });
 
+  it('counts a partly filled last page', () => {
+    expect(pageCount(25, 10)).toBe(3);
+    expect(pageCount(9, 10)).toBe(1);
+    expect(pageCount(11, 10)).toBe(2);
+  });
+
   it('has one page when empty', () => {
     expect(pageCount(0, 10)).toBe(1);
   });

@@ -21,7 +21,7 @@ export function parsePage(params: URLSearchParams, defaultSize = DEFAULT_PAGE_SI
 
 /** Number of pages needed for `total` items; an empty list still has one page. */
 export function pageCount(total: number, pageSize: number): number {
-  return Math.max(1, Math.floor(total / pageSize));
+  return Math.max(1, Math.ceil(total / pageSize));
 }
 
 export function offset({ page, pageSize }: Page): number {
