@@ -15,7 +15,12 @@ export async function getDivisionStandings(divisionId: string) {
   const [teams, matches, adjustments] = await Promise.all([
     prisma.team.findMany({ where: { divisionId }, select: { id: true, name: true } }),
     prisma.match.findMany({
-      where: { divisionId, homeScore: { not: null }, awayScore: { not: null } },
+      where: {
+        divisionId,
+        status: 'PLAYED',
+        homeScore: { not: null },
+        awayScore: { not: null },
+      },
       select: {
         homeTeamId: true,
         awayTeamId: true,

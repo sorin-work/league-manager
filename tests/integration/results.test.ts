@@ -223,6 +223,15 @@ describe('GET /api/divisions/:id/standings', () => {
     expect(drawn).toHaveLength(2);
   });
 
+  it('leaves out a match that was postponed after its result was entered', async () => {
+    const [m1] = await matchesInOrder();
+    await enter(m1.id, { homeScore: 3, awayScore: 0 });
+    // the league ordered a replay
+    await prisma.match.update({ where: { id: m1.id }, data: { status: 'POSTPONED' } });
+    const res = await call(standings, { params: { id: league.division.id } });
+    expect(res.body.standings.every((r: { played: number }) => r.played === 0)).toBe(true);
+  });
+
   it('uses the points rules of the season', async () => {
     await prisma.season.update({ where: { id: league.season.id }, data: { pointsForWin: 2 } });
     const [m1] = await matchesInOrder();
