@@ -4,17 +4,17 @@ import { notFound } from 'next/navigation';
 import { formatDateRange, plural } from '@/lib/format';
 import { notesToHtml } from '@/lib/notes';
 import { listDivisions } from '@/lib/server/services/divisions';
-import { getSeasonBySlug } from '@/lib/server/services/seasons';
+import { loadSeason } from '@/lib/server/page-data';
 
 type Props = { params: Promise<{ season: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const season = await getSeasonBySlug((await params).season);
+  const season = await loadSeason((await params).season);
   return { title: season?.name ?? 'Season not found' };
 }
 
 export default async function SeasonPage({ params }: Props) {
-  const season = await getSeasonBySlug((await params).season);
+  const season = await loadSeason((await params).season);
   if (!season) notFound();
   const divisions = await listDivisions(season.id);
 

@@ -6,19 +6,19 @@ import { TeamBadge } from '@/components/TeamBadge';
 import { POSITION_LABELS, POSITION_SHORT } from '@/lib/positions';
 import { listTeamMatches } from '@/lib/server/services/matches';
 import { getDivisionStandings } from '@/lib/server/services/standings';
-import { getTeamBySlugs } from '@/lib/server/services/teams';
+import { loadTeam } from '@/lib/server/page-data';
 
 type Props = { params: Promise<{ season: string; division: string; team: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await params;
-  const team = await getTeamBySlugs(p.season, p.division, p.team);
+  const team = await loadTeam(p.season, p.division, p.team);
   return { title: team?.name ?? 'Team not found' };
 }
 
 export default async function TeamPage({ params }: Props) {
   const p = await params;
-  const team = await getTeamBySlugs(p.season, p.division, p.team);
+  const team = await loadTeam(p.season, p.division, p.team);
   if (!team) notFound();
   const { division } = team;
   const { season } = division;

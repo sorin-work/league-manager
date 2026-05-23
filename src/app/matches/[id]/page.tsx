@@ -3,12 +3,12 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { EventType } from '@/lib/domain/events';
 import { formatKickoff } from '@/lib/domain/time';
-import { getMatchDetails } from '@/lib/server/services/matches';
+import { loadMatch } from '@/lib/server/page-data';
 
 type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const match = await getMatchDetails((await params).id);
+  const match = await loadMatch((await params).id);
   return { title: match ? `${match.homeTeam.name} v ${match.awayTeam.name}` : 'Match not found' };
 }
 
@@ -38,7 +38,7 @@ function EventLabel({ type, name }: { type: EventType; name: string }) {
 }
 
 export default async function MatchPage({ params }: Props) {
-  const match = await getMatchDetails((await params).id);
+  const match = await loadMatch((await params).id);
   if (!match || match.division.season.status === 'DRAFT') notFound();
   const { division } = match;
   const { season } = division;

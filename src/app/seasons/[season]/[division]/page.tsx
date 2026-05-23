@@ -13,7 +13,7 @@ import { TIEBREAKER_LABELS, type Tiebreaker } from '@/lib/domain/standings';
 import { prisma } from '@/lib/server/db';
 import { listAdjustments } from '@/lib/server/services/adjustments';
 import { getDivisionSuspensions } from '@/lib/server/services/discipline';
-import { getDivisionBySlugs } from '@/lib/server/services/divisions';
+import { loadDivision } from '@/lib/server/page-data';
 import { listDivisionMatches, listDivisionResults } from '@/lib/server/services/matches';
 import { getDivisionScorers } from '@/lib/server/services/scorers';
 import { getDivisionStandings } from '@/lib/server/services/standings';
@@ -33,7 +33,7 @@ const TABS = [
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await params;
-  const division = await getDivisionBySlugs(p.season, p.division);
+  const division = await loadDivision(p.season, p.division);
   return { title: division ? `${division.name} · ${division.season.name}` : 'Division not found' };
 }
 
@@ -41,7 +41,7 @@ export default async function DivisionPage({ params, searchParams }: Props) {
   const p = await params;
   const { tab: tabParam, page: pageParam } = await searchParams;
   const tab = TABS.some((t) => t.id === tabParam) ? tabParam! : 'table';
-  const division = await getDivisionBySlugs(p.season, p.division);
+  const division = await loadDivision(p.season, p.division);
   if (!division) notFound();
   const { season } = division;
 
