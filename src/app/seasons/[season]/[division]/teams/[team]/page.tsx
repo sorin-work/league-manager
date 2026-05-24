@@ -13,7 +13,11 @@ type Props = { params: Promise<{ season: string; division: string; team: string 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await params;
   const team = await loadTeam(p.season, p.division, p.team);
-  return { title: team?.name ?? 'Team not found' };
+  if (!team) return { title: 'Team not found' };
+  return {
+    title: team.name,
+    description: `Squad, fixtures and results of ${team.name} in the ${team.division.name}.`,
+  };
 }
 
 export default async function TeamPage({ params }: Props) {

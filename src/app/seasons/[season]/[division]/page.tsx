@@ -34,7 +34,11 @@ const TABS = [
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await params;
   const division = await loadDivision(p.season, p.division);
-  return { title: division ? `${division.name} · ${division.season.name}` : 'Division not found' };
+  if (!division) return { title: 'Division not found' };
+  return {
+    title: `${division.name} · ${division.season.name}`,
+    description: `Table, fixtures, results and top scorers of the ${division.name} in ${division.season.name}.`,
+  };
 }
 
 export default async function DivisionPage({ params, searchParams }: Props) {
