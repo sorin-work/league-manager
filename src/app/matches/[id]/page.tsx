@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import type { EventType } from '@/lib/domain/events';
 import { formatKickoff } from '@/lib/domain/time';
 import { loadMatch } from '@/lib/server/page-data';
+import { listMeetings } from '@/lib/server/services/matches';
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -43,6 +44,7 @@ export default async function MatchPage({ params }: Props) {
   const { division } = match;
   const { season } = division;
   const played = match.status === 'PLAYED';
+  const meetings = await listMeetings(match);
 
   // an own goal is shown on the side that benefited from it
   const sideOf = (teamId: string, type: EventType) => {
@@ -103,6 +105,23 @@ export default async function MatchPage({ params }: Props) {
               })}
             </ul>
           )}
+        </section>
+      )}
+
+      {meetings.length > 0 && (
+        <section className="card">
+          <h2>Previous meetings</h2>
+          <ul className="upcoming">
+            {meetings.map((m) => (
+              <li key={m.id}>
+                <span className="muted small">{formatKickoff(m.kickoffAt, season.timezone)}</span>
+                <Link href={`/matches/${m.id}`}>
+                  {m.homeTeam.name} {m.homeScore} – {m.awayScore} {m.awayTeam.name}
+                </Link>
+                <span />
+              </li>
+            ))}
+          </ul>
         </section>
       )}
     </div>

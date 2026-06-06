@@ -88,6 +88,22 @@ export function getMatchDetails(id: string) {
   });
 }
 
+/** Earlier results between the same two teams, in this or other divisions. */
+export function listMeetings(match: { id: string; homeTeamId: string; awayTeamId: string }) {
+  const pair = [match.homeTeamId, match.awayTeamId];
+  return prisma.match.findMany({
+    where: {
+      id: { not: match.id },
+      status: 'PLAYED',
+      homeTeamId: { in: pair },
+      awayTeamId: { in: pair },
+    },
+    include: matchInclude,
+    orderBy: { kickoffAt: 'desc' },
+    take: 5,
+  });
+}
+
 /** Moves a match, changes its venue or postpones/cancels it. */
 export async function updateMatchSchedule(id: string, input: MatchUpdate) {
   const match = await getMatch(id);
