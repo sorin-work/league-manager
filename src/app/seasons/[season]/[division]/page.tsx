@@ -164,6 +164,9 @@ export default async function DivisionPage({ params, searchParams }: Props) {
               : 'name'}
             .
           </p>
+          <p className="small">
+            <a href={`/api/divisions/${division.id}/standings/csv`}>Download as CSV</a>
+          </p>
           {adjustments.length > 0 && (
             <ul className="muted small adjustments">
               {adjustments.map((a) => (
