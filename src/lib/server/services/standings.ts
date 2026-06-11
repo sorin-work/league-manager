@@ -1,16 +1,12 @@
-import { computeStandings, type StandingsRules, type Tiebreaker } from '@/lib/domain/standings';
+import { computeStandings } from '@/lib/domain/standings';
 import { prisma } from '../db';
 import { getDivision } from './divisions';
+import { standingsRules } from './rules';
 
 export async function getDivisionStandings(divisionId: string) {
   const division = await getDivision(divisionId);
   const { season } = division;
-  const rules: StandingsRules = {
-    pointsForWin: season.pointsForWin,
-    pointsForDraw: season.pointsForDraw,
-    pointsForLoss: season.pointsForLoss,
-    tiebreakers: season.tiebreakers as Tiebreaker[],
-  };
+  const rules = standingsRules(season);
 
   const [teams, matches, adjustments] = await Promise.all([
     prisma.team.findMany({ where: { divisionId }, select: { id: true, name: true } }),

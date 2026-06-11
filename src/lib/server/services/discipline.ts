@@ -1,6 +1,7 @@
 import { computeSuspensions, type TeamFixture } from '@/lib/domain/discipline';
 import { prisma } from '../db';
 import { getDivision } from './divisions';
+import { disciplineRules } from './rules';
 
 export async function getDivisionSuspensions(divisionId: string) {
   const { season } = await getDivision(divisionId);
@@ -31,11 +32,7 @@ export async function getDivisionSuspensions(divisionId: string) {
   });
   const cards = events.map((e) => ({ ...e, type: e.type as 'YELLOW_CARD' | 'RED_CARD' }));
 
-  const suspensions = computeSuspensions(fixtures, cards, {
-    yellowCardLimit: season.yellowCardLimit,
-    yellowCardBan: season.yellowCardBan,
-    redCardBan: season.redCardBan,
-  });
+  const suspensions = computeSuspensions(fixtures, cards, disciplineRules(season));
 
   const players = await prisma.player.findMany({
     where: { id: { in: suspensions.map((s) => s.playerId) } },
