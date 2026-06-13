@@ -596,6 +596,17 @@ legend {
   color: #fff;
 }
 
+.quick-score {
+  display: grid;
+  grid-template-columns: 1fr 4rem auto 4rem 1fr;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.quick-score .home {
+  text-align: right;
+}
+
 .grow {
   flex: 1;
 }

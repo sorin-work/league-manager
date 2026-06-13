@@ -7,6 +7,7 @@ import { DeleteButton } from '@/components/admin/DeleteButton';
 import { DivisionSettingsForm } from '@/components/admin/DivisionSettingsForm';
 import { GenerateFixturesForm } from '@/components/admin/GenerateFixturesForm';
 import { NewTeamForm } from '@/components/admin/NewTeamForm';
+import { RoundScoresForm } from '@/components/admin/RoundScoresForm';
 import { plural } from '@/lib/format';
 import { prisma } from '@/lib/server/db';
 import { listAdjustments } from '@/lib/server/services/adjustments';
@@ -39,6 +40,11 @@ export default async function AdminDivisionPage({ params, searchParams }: Props)
   const rounds = [...new Set(matches.map((m) => m.round))].sort((a, b) => a - b);
   const round = rounds.includes(Number(roundParam)) ? Number(roundParam) : null;
   const shown = round === null ? matches : matches.filter((m) => m.round === round);
+  const withEvents = await prisma.matchEvent.groupBy({
+    by: ['matchId'],
+    where: { matchId: { in: shown.map((m) => m.id) } },
+  });
+  const eventCounts = new Set(withEvents.map((e) => e.matchId));
 
   return (
     <>
@@ -134,6 +140,23 @@ export default async function AdminDivisionPage({ params, searchParams }: Props)
               ))}
             </nav>
             <AdminMatchTable matches={shown} timeZone={division.season.timezone} />
+            {round !== null && (
+              <>
+                <h3>Scores for round {round}</h3>
+                <RoundScoresForm
+                  divisionId={division.id}
+                  round={round}
+                  matches={shown.map((m) => ({
+                    id: m.id,
+                    home: m.homeTeam.name,
+                    away: m.awayTeam.name,
+                    homeScore: m.homeScore,
+                    awayScore: m.awayScore,
+                    hasEvents: eventCounts.has(m.id),
+                  }))}
+                />
+              </>
+            )}
             <p>
               <DeleteButton
                 url={`/api/divisions/${division.id}/fixtures`}
