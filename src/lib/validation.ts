@@ -218,5 +218,12 @@ export const walkoverSchema = z.object({
 
 export type WalkoverInput = z.infer<typeof walkoverSchema>;
 
+export const roundScoresSchema = z.object({
+  scores: z
+    .array(z.object({ matchId: z.string().min(1), homeScore: score, awayScore: score }))
+    .min(1, 'Enter at least one score')
+    .max(50),
+});
+
 export type MatchEventInput = z.infer<typeof matchEventSchema>;
 export type ResultInput = z.infer<typeof resultSchema>;

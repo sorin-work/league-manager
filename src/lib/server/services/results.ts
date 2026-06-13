@@ -61,6 +61,47 @@ export async function saveResult(matchId: string, input: ResultInput) {
   });
 }
 
+/**
+ * Quick entry of final scores for one round. Matches that already have scorers
+ * or cards must be edited on their own page so the events stay consistent.
+ */
+export async function saveRoundScores(
+  divisionId: string,
+  round: number,
+  scores: { matchId: string; homeScore: number; awayScore: number }[],
+) {
+  const ids = scores.map((s) => s.matchId);
+  if (new Set(ids).size !== ids.length) throw badRequest('A match is listed twice');
+  const matches = await prisma.match.findMany({
+    where: { id: { in: ids } },
+    include: { _count: { select: { events: true } } },
+  });
+  for (const id of ids) {
+    const m = matches.find((x) => x.id === id);
+    if (!m || m.divisionId !== divisionId || m.round !== round) {
+      throw badRequest('A match is not part of this round');
+    }
+    if (m.status === 'CANCELLED') throw conflict('A cancelled match cannot get a score');
+    if (m._count.events > 0) {
+      throw conflict('A match with scorers or cards has to be edited on its own page');
+    }
+  }
+  await prisma.$transaction(
+    scores.map((s) =>
+      prisma.match.update({
+        where: { id: s.matchId },
+        data: {
+          status: 'PLAYED',
+          walkover: false,
+          homeScore: s.homeScore,
+          awayScore: s.awayScore,
+        },
+      }),
+    ),
+  );
+  return { saved: scores.length };
+}
+
 /** Awards the match to one side without it being played; any events are dropped. */
 export async function awardWalkover(matchId: string, input: WalkoverInput) {
   const match = await getMatch(matchId);

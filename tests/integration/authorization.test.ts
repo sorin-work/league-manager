@@ -6,6 +6,7 @@ import * as password from '@/app/api/auth/password/route';
 import * as divisionAdjustments from '@/app/api/divisions/[id]/adjustments/route';
 import * as divisionCopyTeams from '@/app/api/divisions/[id]/copy-teams/route';
 import * as divisionFixtures from '@/app/api/divisions/[id]/fixtures/route';
+import * as roundScores from '@/app/api/divisions/[id]/rounds/[round]/scores/route';
 import * as division from '@/app/api/divisions/[id]/route';
 import * as divisionTeams from '@/app/api/divisions/[id]/teams/route';
 import * as matchResult from '@/app/api/matches/[id]/result/route';
@@ -38,6 +39,7 @@ const routes: [string, RouteModule][] = [
   ['/api/divisions/:id/fixtures', divisionFixtures],
   ['/api/divisions/:id/adjustments', divisionAdjustments],
   ['/api/divisions/:id/copy-teams', divisionCopyTeams],
+  ['/api/divisions/:id/rounds/:round/scores', roundScores],
   ['/api/adjustments/:id', adjustment],
   ['/api/teams/:id', team],
   ['/api/teams/:id/players', teamPlayers],
