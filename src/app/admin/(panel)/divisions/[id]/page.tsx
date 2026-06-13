@@ -15,9 +15,13 @@ import { listDivisionMatches } from '@/lib/server/services/matches';
 import { listTeams } from '@/lib/server/services/teams';
 import { listVenues } from '@/lib/server/services/venues';
 
-type Props = { params: Promise<{ id: string }> };
+type Props = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ round?: string }>;
+};
 
-export default async function AdminDivisionPage({ params }: Props) {
+export default async function AdminDivisionPage({ params, searchParams }: Props) {
+  const { round: roundParam } = await searchParams;
   const division = await getDivision((await params).id).catch(() => null);
   if (!division) notFound();
   const [teams, venues, matches, adjustments, otherDivisions] = await Promise.all([
@@ -32,6 +36,9 @@ export default async function AdminDivisionPage({ params }: Props) {
     }),
   ]);
   const seasonStart = division.season.startDate.toISOString().slice(0, 10);
+  const rounds = [...new Set(matches.map((m) => m.round))].sort((a, b) => a - b);
+  const round = rounds.includes(Number(roundParam)) ? Number(roundParam) : null;
+  const shown = round === null ? matches : matches.filter((m) => m.round === round);
 
   return (
     <>
@@ -109,7 +116,24 @@ export default async function AdminDivisionPage({ params }: Props) {
           )
         ) : (
           <>
-            <AdminMatchTable matches={matches} timeZone={division.season.timezone} />
+            <nav className="round-filter small">
+              <Link
+                href={`/admin/divisions/${division.id}`}
+                className={round === null ? 'active' : undefined}
+              >
+                All rounds
+              </Link>
+              {rounds.map((r) => (
+                <Link
+                  key={r}
+                  href={`/admin/divisions/${division.id}?round=${r}`}
+                  className={r === round ? 'active' : undefined}
+                >
+                  {r}
+                </Link>
+              ))}
+            </nav>
+            <AdminMatchTable matches={shown} timeZone={division.season.timezone} />
             <p>
               <DeleteButton
                 url={`/api/divisions/${division.id}/fixtures`}

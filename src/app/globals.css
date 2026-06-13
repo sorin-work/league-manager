@@ -577,6 +577,25 @@ legend {
   white-space: pre-line;
 }
 
+.round-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.round-filter a {
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.round-filter a.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
 .grow {
   flex: 1;
 }
