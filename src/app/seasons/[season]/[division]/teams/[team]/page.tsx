@@ -6,6 +6,7 @@ import { TeamBadge } from '@/components/TeamBadge';
 import { POSITION_LABELS, POSITION_SHORT } from '@/lib/positions';
 import { listTeamMatches } from '@/lib/server/services/matches';
 import { getDivisionStandings } from '@/lib/server/services/standings';
+import { prisma } from '@/lib/server/db';
 import { loadTeam } from '@/lib/server/page-data';
 
 type Props = { params: Promise<{ season: string; division: string; team: string }> };
@@ -32,6 +33,15 @@ export default async function TeamPage({ params }: Props) {
     getDivisionStandings(division.id),
   ]);
   const row = standings.find((r) => r.teamId === team.id);
+  const tallies = await prisma.matchEvent.groupBy({
+    by: ['playerId', 'type'],
+    where: { teamId: team.id, match: { status: 'PLAYED' } },
+    _count: true,
+  });
+  const count = (playerId: string, ...types: string[]) =>
+    tallies
+      .filter((t) => t.playerId === playerId && types.includes(t.type))
+      .reduce((n, t) => n + t._count, 0);
   const divisionHref = `/seasons/${season.slug}/${division.slug}`;
 
   return (
@@ -106,6 +116,22 @@ export default async function TeamPage({ params }: Props) {
                 <li key={pl.id}>
                   <span className="shirt">{pl.shirtNumber ?? ''}</span>
                   <span className="grow">{pl.name}</span>
+                  <span className="muted small player-stats">
+                    {count(pl.id, 'GOAL', 'PENALTY_GOAL') > 0 &&
+                      `⚽ ${count(pl.id, 'GOAL', 'PENALTY_GOAL')}`}{' '}
+                    {count(pl.id, 'YELLOW_CARD') > 0 && (
+                      <>
+                        <span className="card-yellow" aria-label="Yellow cards" />
+                        {count(pl.id, 'YELLOW_CARD')}
+                      </>
+                    )}
+                    {count(pl.id, 'RED_CARD') > 0 && (
+                      <>
+                        <span className="card-red" aria-label="Red cards" />
+                        {count(pl.id, 'RED_CARD')}
+                      </>
+                    )}
+                  </span>
                   {pl.position && (
                     <span className="muted small" title={POSITION_LABELS[pl.position]}>
                       {POSITION_SHORT[pl.position]}
