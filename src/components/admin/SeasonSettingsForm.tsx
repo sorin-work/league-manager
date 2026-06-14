@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { api, ApiError } from '@/lib/client/api';
 import { TIEBREAKER_LABELS, TIEBREAKERS, type Tiebreaker } from '@/lib/domain/standings';
 import type { SeasonDto } from '@/lib/server/services/seasons';
+import { TIME_ZONE_LIST_ID, TimeZoneOptions } from './TimeZoneOptions';
 
 const SLOTS = [0, 1, 2, 3];
 
@@ -78,7 +79,8 @@ export function SeasonSettingsForm({ season }: { season: SeasonDto }) {
         </label>
         <label>
           Time zone
-          <input name="timezone" defaultValue={season.timezone} required />
+          <input name="timezone" defaultValue={season.timezone} list={TIME_ZONE_LIST_ID} required />
+          <TimeZoneOptions />
           {fieldError('timezone')}
         </label>
       </div>

@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { api, ApiError } from '@/lib/client/api';
+import { TIME_ZONE_LIST_ID, TimeZoneOptions } from './TimeZoneOptions';
 
 export function NewSeasonForm() {
   const router = useRouter();
@@ -56,7 +57,8 @@ export function NewSeasonForm() {
       </div>
       <label>
         Time zone
-        <input name="timezone" defaultValue="Europe/London" required />
+        <input name="timezone" defaultValue="Europe/London" list={TIME_ZONE_LIST_ID} required />
+        <TimeZoneOptions />
         <span className="hint">Kick-off times are entered and shown in this time zone.</span>
       </label>
       <div>
