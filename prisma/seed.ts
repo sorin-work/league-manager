@@ -5,7 +5,7 @@
  *   npm run db:seed            # skip when there is already data
  *   npm run db:seed -- --force # add the demo season anyway
  */
-import { PrismaClient, type EventType } from '@prisma/client';
+import { PrismaClient, type EventType, type Position } from '@prisma/client';
 import { generateFixtures } from '../src/lib/domain/fixtures';
 import { addDays, scheduleFixtures } from '../src/lib/domain/schedule';
 import { slugify } from '../src/lib/domain/slug';
@@ -128,6 +128,24 @@ const VENUES = [
   { name: "St Mary's Playing Fields", address: 'Church Walk' },
 ];
 
+const COLOURS = [
+  '#d92d20',
+  '#1d4ed8',
+  '#16a34a',
+  '#f59e0b',
+  '#7c3aed',
+  '#0f172a',
+  '#db2777',
+  '#0891b2',
+];
+
+function positionFor(shirt: number): Position {
+  if (shirt === 1 || shirt === 13) return 'GOALKEEPER';
+  if (shirt <= 5 || shirt === 12) return 'DEFENDER';
+  if (shirt <= 8 || shirt === 14) return 'MIDFIELDER';
+  return 'FORWARD';
+}
+
 function lastSunday(from: Date) {
   const d = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate()));
   d.setUTCDate(d.getUTCDate() - d.getUTCDay());
@@ -167,6 +185,10 @@ async function main() {
       startDate: new Date(`${start}T00:00:00Z`),
       endDate: new Date(`${addDays(start, 7 * 20)}T00:00:00Z`),
       timezone: 'Europe/London',
+      notes: [
+        'Matches are played on Sunday mornings. Teams must be ready ten minutes before kick-off.',
+        'Results and scorers are entered by the league secretary on Sunday evening.',
+      ].join('\n\n'),
     },
   });
 
@@ -190,6 +212,7 @@ async function main() {
           slug: slugify(name),
           shortName: name.replace(/[^A-Z]/g, '').slice(0, 3) || name.slice(0, 3).toUpperCase(),
           homeVenueId: t % 3 === 0 ? venues[(t / 3) % venues.length].id : null,
+          colour: COLOURS[(t + index * 3) % COLOURS.length],
         },
       });
       const used = new Set<string>();
@@ -198,7 +221,7 @@ async function main() {
         let name = `${pick(FIRST)} ${pick(LAST)}`;
         while (used.has(name)) name = `${pick(FIRST)} ${pick(LAST)}`;
         used.add(name);
-        players.push({ teamId: team.id, name, shirtNumber: n });
+        players.push({ teamId: team.id, name, shirtNumber: n, position: positionFor(n) });
       }
       await prisma.player.createMany({ data: players });
       teams.push({
@@ -254,7 +277,7 @@ async function main() {
             minute: 1 + Math.floor(random() * 90),
           });
         }
-        if (random() < 0.04) {
+        if (random() < 0.06) {
           const sentOff = pick(squad);
           events.push({
             playerId: sentOff.id,
@@ -282,6 +305,42 @@ async function main() {
       });
     }
   }
+
+  // a couple of things a real season always has
+  const championship = await prisma.division.findFirstOrThrow({
+    where: { seasonId: season.id, slug: 'championship' },
+  });
+  const noShow = await prisma.match.findFirst({
+    where: { divisionId: championship.id, round: 3, status: 'PLAYED' },
+    orderBy: { kickoffAt: 'asc' },
+  });
+  if (noShow) {
+    await prisma.matchEvent.deleteMany({ where: { matchId: noShow.id } });
+    await prisma.match.update({
+      where: { id: noShow.id },
+      data: { walkover: true, homeScore: 3, awayScore: 0 },
+    });
+  }
+  const premier = await prisma.division.findFirstOrThrow({
+    where: { seasonId: season.id, slug: 'premier-division' },
+    include: { teams: { orderBy: { name: 'asc' } } },
+  });
+  await prisma.pointsAdjustment.create({
+    data: {
+      divisionId: premier.id,
+      teamId: premier.teams[5].id,
+      points: -3,
+      reason: 'Fielded an unregistered player',
+    },
+  });
+  await prisma.division.update({
+    where: { id: premier.id },
+    data: { promotionPlaces: 0, relegationPlaces: 2 },
+  });
+  await prisma.division.update({
+    where: { id: championship.id },
+    data: { promotionPlaces: 2 },
+  });
 
   console.log(
     `seed: created ${seasonName}; sign in as ${DEMO_ADMIN.email} / ${DEMO_ADMIN.password}`,
