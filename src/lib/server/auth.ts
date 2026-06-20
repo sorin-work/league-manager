@@ -57,6 +57,14 @@ export async function findSessionUser(token: string | undefined): Promise<AdminI
     include: { user: true },
   });
   if (!session || session.expiresAt <= new Date()) return null;
+  // sliding expiry: renew once less than half of the lifetime is left
+  const ttl = SESSION_TTL_DAYS * 24 * 60 * 60 * 1000;
+  if (session.expiresAt.getTime() - Date.now() < ttl / 2) {
+    await prisma.session.update({
+      where: { id: session.id },
+      data: { expiresAt: new Date(Date.now() + ttl) },
+    });
+  }
   const { id, email, name } = session.user;
   return { id, email, name };
 }
