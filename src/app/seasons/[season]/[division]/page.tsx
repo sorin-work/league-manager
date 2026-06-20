@@ -97,7 +97,7 @@ export default async function DivisionPage({ params, searchParams }: Props) {
       {tab === 'fixtures' && (
         <section className="card">
           <MatchList
-            matches={matches.filter((m) => m.status !== 'PLAYED')}
+            matches={matches.filter((m) => m.status === 'SCHEDULED' || m.status === 'POSTPONED')}
             timeZone={season.timezone}
             byes={byes}
             emptyText="No fixtures left to play."

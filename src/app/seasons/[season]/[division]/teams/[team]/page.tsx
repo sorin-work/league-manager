@@ -91,7 +91,7 @@ export default async function TeamPage({ params }: Props) {
           <section className="card">
             <h2>Fixtures</h2>
             <MatchList
-              matches={matches.filter((m) => m.status !== 'PLAYED')}
+              matches={matches.filter((m) => m.status === 'SCHEDULED' || m.status === 'POSTPONED')}
               timeZone={season.timezone}
               emptyText="No fixtures left."
             />
