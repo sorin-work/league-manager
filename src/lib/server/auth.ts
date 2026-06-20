@@ -42,6 +42,8 @@ export async function authenticate(email: string, password: string): Promise<Adm
 }
 
 export async function createSession(userId: string) {
+  // tidy up on every sign-in so old sessions do not pile up
+  await prisma.session.deleteMany({ where: { expiresAt: { lte: new Date() } } });
   const token = newSessionToken();
   const expiresAt = new Date(Date.now() + SESSION_TTL_DAYS * 24 * 60 * 60 * 1000);
   await prisma.session.create({ data: { tokenHash: hashToken(token), userId, expiresAt } });

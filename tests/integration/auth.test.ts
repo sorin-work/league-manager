@@ -109,6 +109,17 @@ describe('auth routes', () => {
     expect((await call(me, { cookie })).status).toBe(401);
   });
 
+  it('removes expired sessions when somebody signs in', async () => {
+    const admin = await prisma.adminUser.findFirstOrThrow();
+    await prisma.session.create({
+      data: { tokenHash: 'old', userId: admin.id, expiresAt: new Date(Date.now() - 60_000) },
+    });
+    await call(login, { method: 'POST', body: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD } });
+    const sessions = await prisma.session.findMany();
+    expect(sessions).toHaveLength(1);
+    expect(sessions[0].tokenHash).not.toBe('old');
+  });
+
   it('signs out by deleting the session', async () => {
     const res = await call(login, {
       method: 'POST',
