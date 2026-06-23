@@ -99,6 +99,29 @@ describe('auth routes', () => {
     expect((await call(me, { cookie: `${SESSION_COOKIE}=forged` })).status).toBe(401);
   });
 
+  it('renews a session that is past half of its lifetime', async () => {
+    const res = await call(login, {
+      method: 'POST',
+      body: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
+    });
+    const soon = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+    await prisma.session.updateMany({ data: { expiresAt: soon } });
+    const cookie = `${SESSION_COOKIE}=${sessionFrom(res.headers)}`;
+    expect((await call(me, { cookie })).status).toBe(200);
+    const session = await prisma.session.findFirstOrThrow();
+    expect(session.expiresAt.getTime()).toBeGreaterThan(Date.now() + 13 * 24 * 60 * 60 * 1000);
+  });
+
+  it('leaves a fresh session alone', async () => {
+    const res = await call(login, {
+      method: 'POST',
+      body: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
+    });
+    const before = (await prisma.session.findFirstOrThrow()).expiresAt;
+    await call(me, { cookie: `${SESSION_COOKIE}=${sessionFrom(res.headers)}` });
+    expect((await prisma.session.findFirstOrThrow()).expiresAt).toEqual(before);
+  });
+
   it('treats an expired session as signed out', async () => {
     const res = await call(login, {
       method: 'POST',
