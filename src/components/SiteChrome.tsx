@@ -9,6 +9,7 @@ export function SiteHeader() {
         </Link>
         <nav className="site-nav">
           <Link href="/">Seasons</Link>
+          <Link href="/fixtures">Match day</Link>
           <Link href="/admin">Admin</Link>
         </nav>
       </div>
