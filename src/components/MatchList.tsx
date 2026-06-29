@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { formatKickoff } from '@/lib/domain/time';
+import { statusNote } from '@/lib/match-status';
 import type { MatchWithTeams } from '@/lib/server/services/matches';
 
 interface Props {
@@ -11,11 +12,6 @@ interface Props {
   byes?: Record<number, string>;
   emptyText: string;
 }
-
-const STATUS_LABEL: Record<string, string> = {
-  POSTPONED: 'Postponed',
-  CANCELLED: 'Cancelled',
-};
 
 export function MatchList({ matches, timeZone, newestFirst = false, byes, emptyText }: Props) {
   if (matches.length === 0) return <div className="empty">{emptyText}</div>;
@@ -33,7 +29,7 @@ export function MatchList({ matches, timeZone, newestFirst = false, byes, emptyT
             {rounds.get(round)!.map((m) => (
               <li key={m.id} className="match-row">
                 <span className="when muted small">
-                  {STATUS_LABEL[m.status] ?? formatKickoff(m.kickoffAt, timeZone)}
+                  {statusNote(m.status) ?? formatKickoff(m.kickoffAt, timeZone)}
                 </span>
                 <span className="home">{m.homeTeam.name}</span>
                 <Link href={`/matches/${m.id}`} className="score">

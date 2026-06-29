@@ -1,12 +1,7 @@
 import Link from 'next/link';
 import { formatKickoff } from '@/lib/domain/time';
+import { statusNote } from '@/lib/match-status';
 import type { MatchWithTeams } from '@/lib/server/services/matches';
-
-const STATUS: Record<string, string> = {
-  SCHEDULED: '',
-  POSTPONED: 'Postponed',
-  CANCELLED: 'Cancelled',
-};
 
 export function AdminMatchTable({
   matches,
@@ -43,7 +38,7 @@ export function AdminMatchTable({
                     {m.homeScore} – {m.awayScore}
                   </strong>
                 ) : (
-                  <span className="muted small">{STATUS[m.status]}</span>
+                  <span className="muted small">{statusNote(m.status)}</span>
                 )}
               </td>
               <td className="num">
