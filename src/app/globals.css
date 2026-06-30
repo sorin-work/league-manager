@@ -607,6 +607,11 @@ legend {
   text-align: right;
 }
 
+.champions {
+  font-size: 1.1rem;
+  margin: 0 0 1rem;
+}
+
 .grow {
   flex: 1;
 }

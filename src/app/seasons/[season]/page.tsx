@@ -23,7 +23,9 @@ export default async function SeasonPage({ params }: Props) {
       <div className="breadcrumbs">
         <Link href="/">Seasons</Link>
       </div>
-      <h1>{season.name}</h1>
+      <h1>
+        {season.name} {season.status === 'FINISHED' && <span className="badge">Finished</span>}
+      </h1>
       <p className="muted">{formatDateRange(season.startDate, season.endDate)}</p>
       {season.notes && (
         <section

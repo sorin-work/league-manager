@@ -91,7 +91,15 @@ export default async function DivisionPage({ params, searchParams }: Props) {
       <div className="breadcrumbs">
         <Link href="/">Seasons</Link> / <Link href={`/seasons/${season.slug}`}>{season.name}</Link>
       </div>
-      <h1>{division.name}</h1>
+      <h1>
+        {division.name}{' '}
+        {season.status === 'FINISHED' && <span className="badge">Season finished</span>}
+      </h1>
+      {season.status === 'FINISHED' && (standings[0]?.played ?? 0) > 0 && (
+        <p className="champions">
+          🏆 Champions: <strong>{standings[0].name}</strong>
+        </p>
+      )}
       <Tabs tabs={TABS} active={tab} href={(id) => (id === 'table' ? base : `${base}?tab=${id}`)} />
 
       {tab === 'fixtures' && (
