@@ -251,6 +251,8 @@ tbody tr:hover {
 .standings td.team {
   width: 100%;
   white-space: normal;
+  overflow-wrap: anywhere;
+  min-width: 8rem;
 }
 
 .standings td.pts {
@@ -883,6 +885,12 @@ legend {
 
 .match-row .home {
   text-align: right;
+}
+
+.match-row .home,
+.match-row .away {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .match-row .score {
