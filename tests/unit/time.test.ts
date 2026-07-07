@@ -47,6 +47,29 @@ describe('zonedTimeToUtc', () => {
     );
   });
 
+  it('moves a time inside the spring-forward gap past the gap', () => {
+    // 29 Mar 2026: 01:00-02:00 does not exist in London
+    expect(zonedTimeToUtc('2026-03-29T01:30', 'Europe/London').toISOString()).toBe(
+      '2026-03-29T01:30:00.000Z',
+    );
+    expect(toLocalInput(zonedTimeToUtc('2026-03-29T01:30', 'Europe/London'), 'Europe/London')).toBe(
+      '2026-03-29T02:30',
+    );
+  });
+
+  it('picks one of the two instants of an hour that happens twice', () => {
+    const instant = zonedTimeToUtc('2025-10-26T01:30', 'Europe/London');
+    expect(['2025-10-26T00:30:00.000Z', '2025-10-26T01:30:00.000Z']).toContain(
+      instant.toISOString(),
+    );
+  });
+
+  it('handles zones with half-hour offsets', () => {
+    expect(zonedTimeToUtc('2025-09-06T10:00', 'Asia/Kolkata').toISOString()).toBe(
+      '2025-09-06T04:30:00.000Z',
+    );
+  });
+
   it('rejects malformed input', () => {
     expect(() => zonedTimeToUtc('2025-09-06 10:00', 'UTC')).toThrow();
   });
