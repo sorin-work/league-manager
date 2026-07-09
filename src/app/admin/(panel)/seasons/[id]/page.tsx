@@ -58,6 +58,19 @@ export default async function AdminSeasonPage({ params }: Props) {
         <h2>Settings</h2>
         <SeasonSettingsForm season={season} />
       </section>
+
+      <section className="card danger-zone">
+        <h2>Delete season</h2>
+        <p className="muted">
+          Removes the season with all divisions, teams, fixtures and results. This cannot be undone.
+        </p>
+        <DeleteButton
+          url={`/api/seasons/${season.id}`}
+          label="Delete season"
+          confirm={`Delete ${season.name} and everything in it?`}
+          redirectTo="/admin/seasons"
+        />
+      </section>
     </>
   );
 }

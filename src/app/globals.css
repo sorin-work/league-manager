@@ -633,6 +633,10 @@ legend {
   margin: 0 0 1rem;
 }
 
+.danger-zone {
+  border-color: var(--danger);
+}
+
 .grow {
   flex: 1;
 }
