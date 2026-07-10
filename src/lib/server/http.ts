@@ -52,6 +52,15 @@ export function json<T>(data: T, init?: ResponseInit) {
   return NextResponse.json(data, init);
 }
 
+/** A positive whole number from a route or query parameter, or a 400. */
+export function positiveInt(value: string, name: string): number {
+  const n = Number(value);
+  if (!/^\d+$/.test(value) || !Number.isInteger(n) || n < 1) {
+    throw badRequest(`${name} must be a positive whole number`);
+  }
+  return n;
+}
+
 export async function readJson(req: Request): Promise<unknown> {
   try {
     return await req.json();

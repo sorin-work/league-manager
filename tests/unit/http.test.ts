@@ -1,7 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
-import { HttpError, notFound, toErrorResponse } from '@/lib/server/http';
+import { HttpError, notFound, positiveInt, toErrorResponse } from '@/lib/server/http';
+
+describe('positiveInt', () => {
+  it('parses positive whole numbers', () => {
+    expect(positiveInt('12', 'round')).toBe(12);
+  });
+
+  it.each(['0', '-1', '1.5', 'abc', '', '1e3'])('rejects %j', (value) => {
+    expect(() => positiveInt(value, 'round')).toThrow(/round must be/);
+  });
+});
 
 describe('toErrorResponse', () => {
   it('uses the status and message of an HttpError', () => {
