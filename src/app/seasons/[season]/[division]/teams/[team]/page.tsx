@@ -7,7 +7,9 @@ import { POSITION_LABELS, POSITION_SHORT } from '@/lib/positions';
 import { listTeamMatches } from '@/lib/server/services/matches';
 import { getDivisionStandings } from '@/lib/server/services/standings';
 import { prisma } from '@/lib/server/db';
+import { activeSuspensions } from '@/lib/domain/discipline';
 import { loadTeam } from '@/lib/server/page-data';
+import { getDivisionSuspensions } from '@/lib/server/services/discipline';
 
 type Props = { params: Promise<{ season: string; division: string; team: string }> };
 
@@ -28,10 +30,16 @@ export default async function TeamPage({ params }: Props) {
   const { division } = team;
   const { season } = division;
 
-  const [matches, { standings }] = await Promise.all([
+  const [matches, { standings }, suspensions] = await Promise.all([
     listTeamMatches(team.id),
     getDivisionStandings(division.id),
+    getDivisionSuspensions(division.id),
   ]);
+  const suspended = new Set(
+    activeSuspensions(suspensions)
+      .filter((s) => s.teamId === team.id)
+      .map((s) => s.playerId),
+  );
   const row = standings.find((r) => r.teamId === team.id);
   const tallies = await prisma.matchEvent.groupBy({
     by: ['playerId', 'type'],
@@ -115,7 +123,10 @@ export default async function TeamPage({ params }: Props) {
               {team.players.map((pl) => (
                 <li key={pl.id}>
                   <span className="shirt">{pl.shirtNumber ?? ''}</span>
-                  <span className="grow">{pl.name}</span>
+                  <span className="grow">
+                    {pl.name}{' '}
+                    {suspended.has(pl.id) && <span className="badge danger">Suspended</span>}
+                  </span>
                   <span className="muted small player-stats">
                     {count(pl.id, 'GOAL', 'PENALTY_GOAL') > 0 &&
                       `⚽ ${count(pl.id, 'GOAL', 'PENALTY_GOAL')}`}{' '}
