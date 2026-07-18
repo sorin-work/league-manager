@@ -47,6 +47,7 @@ export function ResultForm(props: Props) {
     })),
   );
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const [pending, setPending] = useState(false);
 
   const suspended = new Set(props.suspendedIds ?? []);
   const allPlayers = [...props.home.players, ...props.away.players];
@@ -64,6 +65,8 @@ export function ResultForm(props: Props) {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (pending) return;
+    setPending(true);
     setMessage(null);
     try {
       await api(`/api/matches/${props.matchId}/result`, {
@@ -84,6 +87,8 @@ export function ResultForm(props: Props) {
       router.refresh();
     } catch (err) {
       setMessage({ ok: false, text: err instanceof ApiError ? err.message : 'Could not save' });
+    } finally {
+      setPending(false);
     }
   }
 
@@ -196,8 +201,8 @@ export function ResultForm(props: Props) {
       </fieldset>
 
       <div className="form-actions">
-        <button type="submit" className="button">
-          {props.played ? 'Update result' : 'Save result'}
+        <button type="submit" className="button" disabled={pending}>
+          {pending ? 'Saving…' : props.played ? 'Update result' : 'Save result'}
         </button>
       </div>
     </form>
