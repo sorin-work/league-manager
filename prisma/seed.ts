@@ -306,6 +306,53 @@ async function main() {
     }
   }
 
+  // last season, finished, so there is history and something to copy teams from
+  const lastStart = addDays(start, -7 * 40);
+  const lastYear = Number(lastStart.slice(0, 4));
+  const lastName = `Sunday League ${lastYear}/${String(lastYear + 1).slice(2)}`;
+  const last = await prisma.season.create({
+    data: {
+      name: lastName,
+      slug: `${slugify(lastName)}${force ? `-${Date.now().toString(36)}` : ''}`,
+      status: 'FINISHED',
+      startDate: new Date(`${lastStart}T00:00:00Z`),
+      endDate: new Date(`${addDays(lastStart, 7 * 14)}T00:00:00Z`),
+      timezone: 'Europe/London',
+    },
+  });
+  const lastDivision = await prisma.division.create({
+    data: { seasonId: last.id, name: 'Premier Division', slug: 'premier-division' },
+  });
+  const lastTeams = [];
+  for (const name of DIVISIONS[0].teams) {
+    lastTeams.push(
+      await prisma.team.create({
+        data: { divisionId: lastDivision.id, name, slug: slugify(name) },
+      }),
+    );
+  }
+  const lastFixtures = scheduleFixtures(
+    generateFixtures(
+      lastTeams.map((t) => t.id),
+      'DOUBLE',
+    ),
+    {
+      startDate: lastStart,
+      daysBetweenRounds: 7,
+      kickoffTimes: ['10:30'],
+      timeZone: 'Europe/London',
+    },
+  );
+  await prisma.match.createMany({
+    data: lastFixtures.map((m) => ({
+      ...m,
+      divisionId: lastDivision.id,
+      status: 'PLAYED' as const,
+      homeScore: goals(),
+      awayScore: goals(),
+    })),
+  });
+
   // a couple of things a real season always has
   const championship = await prisma.division.findFirstOrThrow({
     where: { seasonId: season.id, slug: 'championship' },
