@@ -19,12 +19,15 @@ export function MatchList({ matches, timeZone, newestFirst = false, byes, emptyT
   const rounds = new Map<number, MatchWithTeams[]>();
   for (const m of matches) rounds.set(m.round, [...(rounds.get(m.round) ?? []), m]);
   const order = [...rounds.keys()].sort((a, b) => (newestFirst ? b - a : a - b));
+  const nextRound = newestFirst ? null : order[0];
 
   return (
     <div className="match-list">
       {order.map((round) => (
         <section key={round}>
-          <h3>Round {round}</h3>
+          <h3 id={`round-${round}`}>
+            Round {round} {round === nextRound && <span className="badge">Next up</span>}
+          </h3>
           <ul>
             {rounds.get(round)!.map((m) => (
               <li key={m.id} className="match-row">
