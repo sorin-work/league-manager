@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { MatchList } from '@/components/MatchList';
 import { Pagination } from '@/components/Pagination';
+import { PrintButton } from '@/components/PrintButton';
 import { ScorersTable } from '@/components/ScorersTable';
 import { StandingsTable } from '@/components/StandingsTable';
 import { SuspensionsTable } from '@/components/SuspensionsTable';
@@ -173,7 +174,8 @@ export default async function DivisionPage({ params, searchParams }: Props) {
             .
           </p>
           <p className="small">
-            <a href={`/api/divisions/${division.id}/standings/csv`}>Download as CSV</a>
+            <a href={`/api/divisions/${division.id}/standings/csv`}>Download as CSV</a>{' '}
+            <PrintButton label="Print table" />
           </p>
           {adjustments.length > 0 && (
             <ul className="muted small adjustments">

@@ -806,6 +806,7 @@ legend {
 }
 
 @media print {
+  .print-hide,
   .site-header,
   .site-footer,
   .tabs,
