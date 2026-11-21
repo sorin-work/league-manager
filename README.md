@@ -126,6 +126,8 @@ docs/                api reference and league rules
 See [docs/api.md](docs/api.md) for the JSON API and [docs/rules.md](docs/rules.md) for how tables,
 tiebreakers and bans are worked out.
 
+Ideas for what might come next, with design notes, are in [ROADMAP.md](ROADMAP.md).
+
 ## License
 
 MIT
