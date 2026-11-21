@@ -525,3 +525,65 @@ install, and the CHANGELOG does not say which releases carry migrations.
   status, duration), since the `500` path currently has nothing to go on.
 - `/api/health` reports the last applied migration name.
 - Tests: a unit test for the log line shape.
+
+## Maybe
+
+### 33. Knockout cups
+
+Many leagues run a cup next to the league. The app only does round-robin.
+
+- A division `format` of `KNOCKOUT`: a draw (random or seeded), byes up to the next power of two,
+  rounds generated as earlier ones finish, and a result that can be decided by extra time or
+  penalties (new fields on `Match`).
+- A bracket view on the public division page.
+- Tricky: a cup match needs a winner, so the result form must refuse a plain draw, and walkovers
+  advance the other team. The table, scorers and bans logic must keep working for a division
+  without a table.
+- Why maybe: it is the biggest single addition here, and leagues often run cups on paper.
+
+### 34. Play-offs after the league
+
+Some leagues decide promotion with play-offs between the teams just below the promotion places.
+
+- A play-off bracket (from 33) seeded from the final table, with the winner promoted in the new
+  season flow (8).
+- Why maybe: depends on the cup work and is used by few amateur leagues.
+
+### 35. Other sports
+
+The rules assume football: goals, draws, yellow and red cards. Basketball has no draws, rugby has
+bonus points, volleyball scores in sets.
+
+- A sport setting per season that decides the score shape, whether draws exist, bonus point rules
+  and which event types the result form offers.
+- Why maybe: every rule in `domain/standings.ts` and `domain/discipline.ts` would grow a branch.
+  Bonus points could come earlier as an extra season rule (points for scoring four tries, for
+  losing by less than eight), which is cheap.
+
+### 36. Live scores on match days
+
+On a Saturday the match day page could show scores as they come in.
+
+- Team managers (22) or the referee post the score during the match; the match day page updates
+  with server-sent events from a route handler.
+- Why maybe: amateur matches rarely have anyone free to post scores during play, and it needs
+  submission by teams first.
+
+### 37. Translations of the public pages
+
+The UI is English only. Leagues in other countries would want the public site in their language.
+
+- `next-intl` with English as the default and the public pages first; the admin area can stay
+  English.
+- Dates and times already use `Intl`; they would follow the locale.
+- Why maybe: nobody has asked, and every string in every component moves into message files.
+
+### 38. Browser tests for the admin forms
+
+The admin forms are client components that call the JSON API and refresh. The integration tests
+cover the API, not the forms, so a broken form (wrong field name, missing refresh) passes CI.
+
+- Playwright against `next start` and the test database, covering sign in, generating fixtures,
+  entering a result with a scorer and seeing the table change.
+- Why maybe: a browser in CI is slow and flaky. Three or four flows on the most used forms would
+  catch most breakage for a reasonable cost.
