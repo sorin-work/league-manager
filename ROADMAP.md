@@ -174,3 +174,354 @@ is the worst thing that can happen to a league secretary.
   should wait for the app's healthcheck before its first dump, so it never dumps half a migration.
 - Tests: none in Vitest. One CI step in the `docker` job that starts the stack, dumps, and restores
   into a fresh database would be the real test.
+
+## Later
+
+### 6. Clash checks when moving a match
+
+Fixture generation spreads matches over kick-off slots and shared venues, so a freshly generated
+season has no clashes. After that, `updateMatchSchedule` saves any kick-off and venue without
+looking at other matches. Moving a postponed match onto a Saturday can put two matches on the
+same pitch at the same time, or a team in two matches on one day.
+
+- A pure `findClashes(match, others, options)` in `domain/schedule.ts`: same venue with
+  overlapping times (kick-off plus a match length per season, 105 minutes as the calendar route
+  uses today), the same team twice on one day, and optionally the same referee (23).
+- `PATCH /api/matches/:id` returns the clashes as `warnings`; with `force: true` it saves anyway.
+  `ScheduleForm` shows them and asks.
+- Tricky: matches in other divisions and other seasons share venues, so the lookup is by venue and
+  time across the whole database, not within the division.
+- Tests: unit tests for `findClashes` around midnight and daylight saving changes (times are UTC
+  instants in a season time zone); an integration test for the warning and the forced save.
+
+### 7. Postponed matches waiting for a date
+
+A postponed match keeps its old kick-off and disappears into the round list. The dashboard shows
+scheduled matches past their kick-off without a result, but not postponed ones.
+
+- A "To rearrange" list on the admin dashboard: postponed matches and matches with no kick-off,
+  oldest first, with the free dates of both teams (no match that day) for the next few weeks.
+- Public fixtures show postponed matches in their own block instead of in the past round.
+- Tests: the free date calculation as a pure function; an integration test for the list.
+
+### 8. New season with promotion and relegation
+
+`copy-teams` copies the teams of one division into another, with players (`includePlayers`). It
+does not know about promotion and relegation, so starting a new season with two divisions means
+copying each division and then moving the promoted and relegated teams by hand. The copy also
+drops player positions: `copyTeams` creates players with `name` and `shirtNumber` only.
+
+- "Start next season" on a finished season: a form that lists the new divisions (same names and
+  rules by default) and, from the final tables, which teams go up and down using the existing
+  `promotionPlaces` and `relegationPlaces`. The secretary can override the list (a team folds, a
+  new team joins).
+- One transaction creates the season as a draft, the divisions, the teams with squads, and keeps a
+  link from each new team to its previous one (`previousTeamId`), which honours (28) and players
+  across seasons (17) can use later.
+- Copy player positions too.
+- Tricky: final tables can be tied on everything and broken by name. The form must show the
+  table it used so the secretary can see why a team is in a relegation place.
+- Tests: an integration test for a two division league with one up and one down, and an override.
+
+### 9. Security headers
+
+`next.config.ts` sets `poweredByHeader: false` and nothing else. There is no
+Content-Security-Policy, no `frame-ancestors` (an admin page can be framed), and no HSTS when the
+site runs over https.
+
+- `headers()` in `next.config.ts`: a CSP with `default-src 'self'` and what Next.js needs for its
+  scripts (a nonce from `middleware.ts`, since App Router pages use inline bootstrap scripts),
+  `frame-ancestors 'none'` for `/admin` (the public pages may be embedded later, see 26),
+  `Referrer-Policy`, `X-Content-Type-Options`.
+- HSTS only when `COOKIE_SECURE=true`, which already means "this runs behind https".
+- Tests: a unit test on the header list; the middleware test checks the nonce is set.
+
+### 10. Audit log of changes
+
+Results, walkovers, point deductions and reschedules change the table, and several admins can
+make them. Nothing records who changed what. When a club disputes a result, the secretary cannot
+tell whether the score was changed after the match.
+
+- An `AuditEntry` table: admin, action, target type and id, a JSON `before` and `after`, time.
+- Written in the services for results, walkovers, round scores, adjustments, schedule changes,
+  season rules and deletes, inside the same transaction.
+- An admin page with filters by season, team and admin, and the entries for a match on its admin
+  page.
+- Tricky: the services do not know the admin today; route handlers call `requireAdmin` and drop
+  the result. Pass the admin id into the service functions that write.
+- Tests: integration tests that each write leaves one entry with the right before and after.
+
+### 11. Safer deletes
+
+Deleting a season deletes its divisions, teams, players and matches in one cascade after one
+confirm (`DeleteButton`). A wrong click on the wrong season is unrecoverable without a backup.
+
+- Seasons and divisions with results ask for the name to be typed before deleting.
+- With the audit log (10), keep the deleted season as a JSON snapshot in the entry for 30 days and
+  offer "Restore" from the audit page. Without it, typing the name is the whole item.
+- Tests: integration test that a delete without the typed name is refused.
+
+### 12. Manual suspensions and appeals
+
+Bans come only from cards. Leagues also ban players for things that happen off the card count
+(violent conduct reported after the match, a registration offence) and overturn red cards on
+appeal.
+
+- A `ManualBan` table: player, matches, reason, created by, and an optional `overturnsEventId` that
+  cancels the ban from a specific red card.
+- `domain/discipline.ts` takes manual bans as a second input and merges them into the same queue,
+  so "a ban earned while another is running starts after it" still holds.
+- Public suspensions list shows the reason only when the secretary ticks "public".
+- Tests: unit tests in `tests/unit/discipline.test.ts` for a manual ban during a card ban and an
+  overturned red card.
+
+### 13. Fair play table
+
+Cards are recorded per player and team, but nothing adds them up per team. Many amateur leagues
+publish a fair play table and some use it as a tiebreaker.
+
+- A pure `fairPlay(events, rules)` in a new `domain/fair-play.ts`: points per yellow, per red, per
+  second yellow (season settings, 1/3/3 by default), lowest first.
+- A "Fair play" tab on the division page next to scorers and suspensions, and
+  `GET /api/divisions/:id/fair-play`.
+- Tests: unit tests for the totals and the second yellow case.
+
+### 14. More tiebreakers
+
+The tiebreakers are goal difference, goals scored, wins and head-to-head points then goal
+difference, in an order the season sets. Real league rules ask for more: head-to-head goals
+scored, away goals in head-to-head, fair play points, and finally drawing lots or a play-off
+match, which the app replaces with alphabetical order.
+
+- New tiebreaker keys in `domain/standings.ts`: `HEAD_TO_HEAD_GOALS`, `HEAD_TO_HEAD_AWAY_GOALS`,
+  `FAIR_PLAY` (uses 13), `MATCHES_PLAYED_FEWER`.
+- A "decided by" note on the table when teams are separated by something other than points, so a
+  supporter can see why.
+- A manual order for teams level on everything (the result of a draw or a play-off), stored per
+  division, applied last instead of the name.
+- Tricky: head-to-head with three teams level re-applies the mini-table to the remaining tied
+  teams in some rule books and not in others. Make it a season setting with the current behaviour
+  as default, and document both in `docs/rules.md`.
+- Tests: the existing `tests/unit/tiebreakers.test.ts` style, one case per new key.
+
+### 15. Match squads and appearances
+
+A result has a score, scorers and cards. Who actually played is not recorded, so there are no
+appearance counts, no clean sheets, and the suspended player check (4) only sees players who
+scored or were booked.
+
+- A `MatchPlayer` table: match, player, started or substitute, optional minutes.
+- The result form gets a squad picker per team (the roster with tick boxes, last match's squad
+  preselected). Optional: a result without squads stays valid, as today.
+- Appearances, starts and clean sheets (goalkeeper started, no goals against) on the team and
+  player pages.
+- Tests: integration tests for saving squads with a result and for the counts.
+
+### 16. Player pages
+
+Players exist only as rows in a squad list. Supporters and players look for "my goals this
+season".
+
+- A public page per player under the team page: goals, cards, bans and, with 15, appearances,
+  with the matches they happened in.
+- Linked from the scorers chart and the squad list.
+- Tests: an integration test for the page data; draft seasons stay hidden (2).
+
+### 17. Players across seasons
+
+A player is a row in one team in one division. Next season the same person is a new row (copied
+or imported), so career totals and "has played for" are impossible, and two people called Sam
+Patel in different teams look the same as one.
+
+- A `Person` table, with `Player` rows (one per team per season) pointing at it. The copy and the
+  new season flow (8) link the new rows to the same person; the roster import can match by name
+  and date of birth when given (19).
+- Career pages: seasons, teams, goals and cards per season.
+- Tricky: existing data has no people. A one-off migration can create one person per player row
+  and offer an admin screen to merge duplicates, rather than guessing by name.
+- Why later: it changes the model under squads, results and discipline. Worth it once a league has
+  used the app for a few seasons.
+- Tests: integration tests for linking on copy, merging two people, and the career totals.
+
+### 18. Transfers during a season
+
+A player who moves to another team in the same division has to be deleted from the old team
+(which removes their history, see 3) and added again.
+
+- "Transfer to" on a player: marks the old row as left (3) and creates a new row in the new team,
+  linked to the same person once 17 exists.
+- `MatchEvent.teamId` already stores the player's team at the time of the event, so the old
+  team's results stay right.
+- Bans follow the person to the new team: a red card for the old team is served in the new team's
+  next matches. That is the common rule; make it explicit in `docs/rules.md`.
+- Tests: integration test for a transfer with a running ban.
+
+### 19. Registration rules and age groups
+
+Youth and veterans leagues have age limits, and most leagues close registrations at some point in
+the season. The app accepts any player at any time.
+
+- Optional `dateOfBirth` on players (admin only, never public), and per division
+  `minAge`/`maxAge` with an age reference date (usually the start of the season).
+- A `registrationClosesOn` date per season, after which new players need an explicit override.
+- The roster import reads an optional `date_of_birth` column (`domain/roster-csv.ts`).
+- Tests: unit tests for the age check at the reference date; integration tests for the closed
+  registration.
+
+### 20. Player name privacy
+
+Squads, scorers and suspensions show full player names publicly, and the JSON API serves them to
+anyone. For youth leagues that is often not acceptable.
+
+- A season setting: full names, first name and initial, or initials only on public pages and the
+  public API. Admin pages always show full names.
+- One formatting function used by every public component (`ScorersTable`, `SuspensionsTable`, the
+  team and match pages) and the API serialisers.
+- Tests: integration tests that each public endpoint respects the setting.
+
+### 21. Roles: league admin and team manager
+
+Every account is a full admin. Leagues want team secretaries to keep their own squad up to date
+without being able to change results or other teams.
+
+- A `role` on `AdminUser` (`ADMIN`, `TEAM_MANAGER`) and a link from team managers to their teams.
+- `requireAdmin` becomes `requireRole` with a check per endpoint: team managers can edit their own
+  team's details and squad, nothing else.
+- The admin layout shows only what the role can use.
+- Tricky: `middleware.ts` only checks the cookie exists, and the real check is in each handler. A
+  matrix test that calls every write endpoint as a team manager is the only way to be sure none is
+  missed (the existing `tests/integration/authorization.test.ts` is the place).
+- Tests: that matrix.
+
+### 22. Results entered by team managers
+
+The secretary types in every result, usually from text messages on Sunday evening.
+
+- Team managers (21) submit the result of their own match: score, scorers, cards. It is stored as
+  a pending submission, not on the match.
+- When both teams submit the same score it is accepted automatically; when they differ or only
+  one submits within a set time, the secretary sees it on the dashboard and decides.
+- Tricky: pending results must not count in the table, and the public match page should say
+  "result pending".
+- Tests: integration tests for agreeing, disagreeing and single submissions.
+
+### 23. Referees as records
+
+`Match.referee` is a free text string. Referee secretaries need to see who is assigned where, avoid
+giving one referee two matches at the same time, and send each referee their list.
+
+- A `Referee` table (name, contact, active), matches point to it; existing text becomes referees
+  by exact name in a migration.
+- The clash check (6) includes referees.
+- A referee's own iCalendar feed with their matches, reusing `domain/ics.ts`, at a secret URL.
+- Tests: migration of free text names; clash with a referee; the feed.
+
+### 24. Team contacts and email notices
+
+When a match is moved, the secretary has to tell both teams by hand. The app has no contact for a
+team and no mail setup.
+
+- A contact name, email and phone per team, admin only.
+- Optional SMTP settings (`SMTP_HOST` and friends, nodemailer). When they are set, rescheduling,
+  postponing or cancelling a match emails both teams' contacts; without them nothing is sent.
+- A Mailpit service in `docker-compose.dev.yml` so it can be tried locally.
+- Tricky: sending inside the request makes the admin wait for the mail server. A small outbox
+  table and a send loop in the same process is enough; no queue service.
+- Tests: the outbox rows are written in the same transaction as the change; the sender is mocked.
+
+### 25. Faster public pages
+
+The root layout sets `export const dynamic = 'force-dynamic'`, so every visit to a division page
+loads all its matches and events and recomputes the table, scorers and suspensions. That is fine
+for a small league and wasteful on a Saturday evening when every supporter checks the table at
+once, all for data that changes a few times a week.
+
+- Cache the public reads with `unstable_cache` keyed by division, and call `revalidateTag` from
+  every service that writes results, matches, adjustments, teams or season rules.
+- Keep the admin pages dynamic.
+- A seed script for a large league (20 divisions of 16 teams, a full double round-robin with
+  events) and numbers before and after in the pull request.
+- Tricky: missing one `revalidateTag` shows a stale table. Put the tags next to the writes in the
+  services, and test that a result changes the cached standings.
+- Tests: an integration test that reads standings, saves a result and reads them again.
+
+### 26. Embeddable tables and fixtures
+
+Clubs want the league table and their fixtures on their own website.
+
+- `/embed/<season>/<division>/table` and `/embed/<season>/<division>/teams/<team>/fixtures`: the
+  same components with a bare layout, allowed in frames (the CSP from 9 keeps
+  `frame-ancestors 'none'` for everything else).
+- The public read API already exists (reading is public); add CORS headers on `GET` endpoints so
+  club sites can fetch it from the browser.
+- Tests: integration tests for the embed routes and the CORS headers.
+
+### 27. Accessibility pass
+
+The public pages are mostly tables, and the admin area mostly forms. Nobody has gone through them
+with a keyboard and a screen reader.
+
+- Table captions and `scope` on header cells in `StandingsTable`, `ScorersTable` and
+  `SuspensionsTable`; promotion and relegation places marked with text, not only colour.
+- Kit colours on `TeamBadge` are user chosen; make sure the badge has a text alternative and that
+  team names are never shown only as a colour.
+- Every admin form field with a label and errors linked with `aria-describedby`; focus moves to the
+  first error after a failed save.
+- The form guide (W, D, L squares) needs text for screen readers.
+- Tests: no browser tests, so checks go into the component level where possible; a short manual
+  checklist in `docs/` for the rest.
+
+### 28. Honours and past seasons
+
+Finished seasons stay public, but there is no page that shows who won what over the years.
+
+- A public honours page: per finished season, the champion of each division, promoted and
+  relegated teams (from the final table and the places), and the top scorer.
+- Uses the team links from 8 to group a club's honours across seasons; without them, group by
+  exact team name.
+- Tests: integration test for the page data across two seasons.
+
+### 29. Search on the public site
+
+Finding a team means knowing its season and division.
+
+- A search box in `SiteChrome` that searches team names (and player names, if the privacy setting
+  from 20 allows it) across active and finished seasons, with `ILIKE` and a trigram index once the
+  data grows.
+- Tests: integration test that drafts are never found.
+
+### 30. Season export and import
+
+There is no way to take a season out of the app except the table CSV, and no way to load last
+year's results kept in a spreadsheet.
+
+- `GET /api/seasons/:id/export`: one JSON file with the season, divisions, teams, players, venues,
+  matches, events and adjustments.
+- Import of that file as a new draft season, for moving a league between installs and for tests.
+- A results CSV import per division (date, home, away, score), for leagues coming from a
+  spreadsheet, matched to the generated fixtures by teams and round.
+- Tests: a round trip export then import gives the same tables; row errors for the CSV.
+
+### 31. Admin sessions and two-factor sign in
+
+Sessions last 14 days and are renewed while in use. Changing the password signs out other
+devices, but an admin cannot see their sessions or end one.
+
+- An account page section listing sessions (created, last used, user agent), with sign out per
+  session.
+- Optional TOTP for admins (`otpauth` or a small RFC 6238 implementation, it is short), with
+  recovery codes stored hashed.
+- Tests: unit tests for TOTP codes with a fixed clock; integration tests for sign in with a code
+  and session revoke.
+
+### 32. Monitoring and upgrade notes
+
+`/api/health` returns status, database and version. There is nothing on how to upgrade a running
+install, and the CHANGELOG does not say which releases carry migrations.
+
+- `docs/operations.md`: upgrading with Docker (back up first, pull, `docker compose up --build`,
+  what the entrypoint does), what to do when a migration fails, and restoring from a backup (5).
+- Structured JSON logs for API errors from `handle()` in `lib/server/http.ts` (method, path,
+  status, duration), since the `500` path currently has nothing to go on.
+- `/api/health` reports the last applied migration name.
+- Tests: a unit test for the log line shape.
